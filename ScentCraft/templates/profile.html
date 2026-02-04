@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - ScentCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .profile-container { padding: 140px 5% 5rem; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 280px 1fr; gap: 3rem; }
+        
+        /* Sidebar Styling */
+        .sidebar { background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 120px; }
+        .user-header { text-align: center; margin-bottom: 30px; }
+        
+        /* Avatar Design (Initials) */
+        .avatar-circle { 
+            width: 100px; height: 100px; background: #1a1a1a; border: 2px solid #D4AF37; 
+            color: #D4AF37; border-radius: 50%; margin: 0 auto 15px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 3rem; font-family: 'Playfair Display';
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .u-name { font-family: 'Playfair Display'; font-size: 1.5rem; margin-bottom: 5px; color: #1a1a1a; }
+        .u-email { color: #888; font-size: 0.9rem; word-break: break-all; }
+
+        .side-nav button {
+            display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px;
+            background: none; border: none; color: #555; cursor: pointer;
+            border-radius: 10px; transition: 0.3s; font-family: 'Montserrat'; font-size: 1rem;
+            text-align: left;
+        }
+        .side-nav button:hover { background: #f9f9f9; color: #000; padding-left: 20px; }
+        .side-nav button.active { background: #1a1a1a; color: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .side-nav button .icon { font-size: 1.2rem; }
+
+        /* Flash Messages */
+        .alert-box {
+            padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; font-weight: 500;
+            animation: slideDown 0.5s ease;
+        }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .alert-info { background: #e3f2fd; color: #0277bd; border: 1px solid #b3e5fc; }
+        .alert-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+        /* Content Sections */
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        
+        h2 { font-family: 'Playfair Display'; margin-bottom: 25px; color: #1a1a1a; font-size: 2rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+
+        /* --- Dashboard Stats (الشكل القديم) --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eee; display: flex; align-items: center; gap: 20px; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: #D4AF37; }
+        .s-icon { width: 50px; height: 50px; background: #fff8e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #D4AF37; }
+        .s-val { font-size: 1.5rem; font-weight: bold; color: #1a1a1a; }
+        .s-label { color: #888; font-size: 0.9rem; }
+
+        /* --- Orders Table --- */
+        .table-container { background: #fff; border-radius: 15px; border: 1px solid #eee; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 18px; background: #fafafa; color: #888; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 18px; border-top: 1px solid #eee; color: #333; vertical-align: middle; }
+        tr:hover td { background: #fafafa; }
+        
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; display: inline-block; }
+        .status-Processing { background: #FFF3E0; color: #E65100; }
+        .status-Delivered { background: #E8F5E9; color: #2E7D32; }
+        .status-Cancelled { background: #FFEBEE; color: #C62828; }
+
+        /* Action Buttons */
+        .btn-action { 
+            display: inline-flex; align-items: center; justify-content: center; 
+            width: 35px; height: 35px; border-radius: 50%; text-decoration: none; 
+            transition: 0.2s; margin-right: 5px; cursor: pointer; border: none;
+        }
+        .btn-confirm { background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; }
+        .btn-confirm:hover { background: #2E7D32; color: #fff; transform: scale(1.1); }
+        .btn-cancel { background: #FFEBEE; color: #C62828; border: 1px solid #FFCDD2; }
+        .btn-cancel:hover { background: #C62828; color: #fff; transform: scale(1.1); }
+        .btn-invoice { background: #f0f0f0; color: #555; }
+        .btn-invoice:hover { background: #333; color: #fff; }
+
+        /* Wishlist Grid */
+        .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .wishlist-item { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; text-align: center; padding-bottom: 15px; position: relative; }
+        .w-img { width: 100%; height: 150px; object-fit: cover; }
+        .btn-remove-wish { position: absolute; top: 10px; right: 10px; background: #fff; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: #f44336; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        /* --- Settings Form (الشكل القديم النضيف) --- */
+        .settings-card { background: #fff; padding: 30px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 30px; }
+        .settings-title { font-family: 'Playfair Display'; font-size: 1.3rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; color: #333; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; font-size: 0.95rem; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: 0.3s; font-family: 'Montserrat'; background: #fcfcfc; }
+        .form-input:focus { border-color: #D4AF37; box-shadow: 0 0 0 3px rgba(212,175,55,0.1); background: #fff; }
+        .btn-save { background: #1a1a1a; color: #fff; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-save:hover { background: #D4AF37; color: #000; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 0; border-radius: 15px; width: 500px; max-width: 90%; animation: slideDown 0.4s ease; overflow: hidden; }
+        .modal-header { background: #f9f9f9; padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 30px; max-height: 400px; overflow-y: auto; }
+        .close-modal { cursor: pointer; font-size: 1.5rem; color: #999; }
+
+        @media (max-width: 900px) { .profile-container { grid-template-columns: 1fr; } .sidebar { position: static; margin-bottom: 30px; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header class="site-header scrolled" dir="rtl" style="background: #000;">
+        <div class="container">
+            <div class="header-actions">
+                <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.9rem;">Log Out</a>
+                <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px;">
+                    <span class="material-symbols-outlined">person</span>
+                    <span>{{ user.name.split(' ')[0] }}</span>
+                </a>
+            </div>
+            <nav class="main-nav">
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('lab') }}">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+            <a href="{{ url_for('home') }}" class="logo-link"><h2 class="logo-text">ScentCraft</h2></a>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        
+        <aside class="sidebar">
+            <div class="user-header">
+                <div class="avatar-circle">
+                    {{ user.name[0] | upper }}
+                </div>
+                <h3 class="u-name">{{ user.name }}</h3>
+                <p style="color:#888; font-size:0.9rem;">{{ user.email }}</p>
+            </div>
+            
+            <div class="side-nav">
+                <button class="nav-btn active" onclick="openTab('dashboard', this)">
+                    <span class="material-symbols-outlined icon">dashboard</span> Dashboard
+                </button>
+                <button class="nav-btn" onclick="openTab('orders', this)">
+                    <span class="material-symbols-outlined icon">shopping_bag</span> My Orders
+                </button>
+                <button class="nav-btn" onclick="openTab('wishlist', this)">
+                    <span class="material-symbols-outlined icon">favorite</span> Wishlist
+                </button>
+                <button class="nav-btn" onclick="openTab('settings', this)">
+                    <span class="material-symbols-outlined icon">settings</span> Settings
+                </button>
+            </div>
+
+        </aside>
+
+        <div class="content-area">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert-box {{ 'alert-info' if category == 'info' else ('alert-error' if category == 'error' else 'alert-success') }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div id="dashboard-section" class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fff3e0; color:#f57c00;">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ orders_count }}</div>
+                        <div class="stat-label">Total Active Orders</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f5e9; color:#2e7d32;">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ total_spent }} EGP</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e3f2fd; color:#1565c0;">
+                        <span class="material-symbols-outlined">verified_user</span>
+                    </div>
+                    <div>
+                        <div class="stat-value">Gold Member</div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="orders" class="tab-content">
+                <h2>Order History</h2>
+                {% if user.orders %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in user.orders|reverse %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.date.strftime('%Y-%m-%d') }}</td>
+                                <td style="font-weight:bold; color:#D4AF37;">{{ order.total }} EGP</td>
+                                
+                                <td><span class="status-badge status-{{ order.status }}">{{ order.status }}</span></td>
+                                
+                                <td style="display: flex; gap: 5px; align-items:center;">
+                                    <button class="btn-action btn-invoice" onclick="document.getElementById('modal-{{ order.id }}').style.display='block'" title="View Invoice">
+                                        <span class="material-symbols-outlined" style="font-size:1.2rem;">visibility</span>
+                                    </button>
+
+                                    {% if order.status == 'Processing' %}
+                                        
+                                        <a href="{{ url_for('order_action', order_id=order.id, action='confirm') }}" class="btn-action btn-confirm" title="Confirm Receipt" onclick="return confirm('Did you receive this order?')">
+                                            <span class="material-symbols-outlined" style="font-size:1.2rem;">check</span>
+                                        </a>
+
+                                        <a href="{{ url_for('order_action', order_id=order.id, action='cancel') }}" class="btn-action btn-cancel" title="Cancel Order" onclick="return confirm('Are you sure you want to cancel this order?')">
+                                            <span class="material-symbols-outlined" style="font-size:1.2rem;">close</span>
+                                        </a>
+
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <div id="modal-{{ order.id }}" class="modal">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 style="font-family:'Playfair Display'; margin:0;">Invoice <span style="color:#D4AF37;">#{{ order.id }}</span></h3>
+                                        <span class="close-modal" onclick="document.getElementById('modal-{{ order.id }}').style.display='none'">&times;</span>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Date: {{ order.date.strftime('%Y-%m-%d') }}</p>
+                                        
+                                        {% for item in order.items %}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee;">
+                                            
+                                            <div style="text-align: left;">
+                                                <div style="font-weight: bold; color: #333;">
+                                                    {{ item.product_name }}
+                                                </div>
+
+                                                {% if item.details and item.details != '-' %}
+                                                    <div style="font-size: 0.85rem; color: #666; margin-top: 4px; background: #f9f9f9; padding: 5px; border-radius: 4px; border-left: 3px solid #D4AF37;">
+                                                        🧪 <i>{{ item.details }}</i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <div style="text-align: right; font-size: 0.9rem;">
+                                                <span style="color: #888;">x{{ item.quantity }}</span> 
+                                                <span style="font-weight: bold; color: #000; margin-left: 5px;">{{ item.product_price }} EGP</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        <div style="display:flex; justify-content:space-between; margin-top:20px; font-weight:bold; font-size:1.2rem; color:#D4AF37;">
+                                            <span>Total Amount</span> <span>{{ order.total }} EGP</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color:#888;">No recent activity.</p>
+                {% endif %}
+            </div>
+
+            <div id="wishlist" class="tab-content">
+                <h2>My Wishlist</h2>
+                {% if user.wishlist %}
+                <div class="wishlist-grid">
+                    {% for item in user.wishlist %}
+                    <div class="wishlist-item">
+                        <a href="{{ url_for('toggle_wishlist', product_id=item.product.id) }}" class="btn-remove-wish" title="Remove">
+                            <span class="material-symbols-outlined" style="font-size:1.2rem;">close</span>
+                        </a>
+                        <img src="{{ item.product.image }}" class="w-img">
+                        <h4 style="margin:10px 0 5px; font-family:'Playfair Display';">{{ item.product.name }}</h4>
+                        <div style="color:#D4AF37; font-weight:bold; font-size:0.9rem;">{{ item.product.price }} EGP</div>
+                        <a href="{{ url_for('product_details', product_id=item.product.id) }}" style="display:inline-block; margin-top:10px; font-size:0.8rem; text-decoration:underline;">View</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:#888;">Your wishlist is empty.</p>
+                {% endif %}
+            </div>
+
+            <div id="settings" class="tab-content">
+                <h2>Account Settings</h2>
+                
+                <div class="settings-card">
+                    <h3 class="settings-title">Profile Information</h3>
+                    <form action="{{ url_for('update_profile') }}" method="POST">
+                        <div class="form-group"><label class="form-label">Full Name</label><input type="text" name="name" class="form-input" value="{{ user.name }}" required></div>
+                        <div class="form-group"><label class="form-label">Phone</label><input type="text" name="phone" class="form-input" value="{{ user.phone or '' }}"></div>
+                        <div class="form-group"><label class="form-label">Address</label><input type="text" name="address" class="form-input" value="{{ user.address or '' }}"></div>
+                        <button type="submit" class="btn-save">Update Profile</button>
+                    </form>
+                </div>
+
+                <div class="settings-card">
+                    <h3 class="settings-title" style="color:#c62828;">Security</h3>
+                    <form action="{{ url_for('change_password') }}" method="POST">
+                        <div class="form-group"><label class="form-label">Current Password</label><input type="password" name="current_password" class="form-input" required></div>
+                        <div class="form-group"><label class="form-label">New Password</label><input type="password" name="new_password" class="form-input" required></div>
+                        <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" name="confirm_password" class="form-input" required></div>
+                        <button type="submit" class="btn-save">Change Password</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-family:'Playfair Display'; margin:0;">Invoice <span id="modalOrderId" style="color:#D4AF37;"></span></h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Date: <span id="modalDate"></span></p>
+                <div id="modalItems"></div>
+                <div style="display:flex; justify-content:space-between; margin-top:20px; font-weight:bold; font-size:1.2rem; color:#D4AF37;">
+                    <span>Total Amount</span> <span id="modalTotal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabName, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function showInvoice(orderId, date, items) {
+            document.getElementById('modalOrderId').innerText = '#' + orderId;
+            document.getElementById('modalDate').innerText = date;
+            const container = document.getElementById('modalItems');
+            container.innerHTML = '';
+            let total = 0;
+            items.forEach(item => {
+                total += item.price * item.qty;
+                container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #eee;">
+                    <div><b>${item.name}</b><br><span style="color:#888;font-size:0.8rem">Qty: ${item.qty}</span></div>
+                    <b>${item.price} EGP</b>
+                </div>`;
+            });
+            document.getElementById('modalTotal').innerText = total + " EGP";
+            document.getElementById('invoiceModal').style.display = 'block';
+        }
+
+        function closeModal() { document.getElementById('invoiceModal').style.display = 'none'; }
+        window.onclick = function(e) { if(e.target == document.getElementById('invoiceModal')) closeModal(); }
+    </script>
+</body>
+</html>

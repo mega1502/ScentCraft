@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ScentCraft</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;500;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="homepage">
+    
+   <header class="site-header" id="site-header" dir="rtl">
+        <div class="container">
+            <div class="header-actions">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.9rem; padding: 0 1.5rem;">Log Out</a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-outlined" style="font-size: 1.2rem;">person</span>
+                        <span>{{ current_user.name.split(' ')[0] }}</span> </a>
+                {% else %}
+                    <a href="{{ url_for('login', mode='signup') }}" class="btn btn-primary">Sign Up</a>        
+                    <a href="{{ url_for('login', mode='login') }}" class="btn btn-outline">Log In</a>
+                {% endif %}
+            </div>
+
+            <nav class="main-nav" id="main-nav">
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('lab') }}">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+
+            <a href="{{ url_for('home') }}" class="logo-link"> 
+                <h2 class="logo-text">ScentCraft</h2>
+            </a>
+            
+            <button class="mobile-menu-btn" id="mobile-menu-btn"><span class="material-symbols-outlined">menu</span></button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-background"></div>
+            <div class="hero-content">
+                <div class="hero-text-content">
+                    <h1 class="hero-title">
+                        Craft Your <br/><span class="text-primary">Signature Scent</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Explore our exclusive collection or enter our <strong class="text-primary-light">Virtual Lab</strong> to design a unique fragrance that defines you.
+                    </p>
+                </div>
+                
+                <div class="hero-buttons">
+                    <a href="{{ url_for('shop') }}" class="btn btn-outline btn-large btn-outline-white">
+                        Explore Now
+                    </a>
+                    <a href="{{ url_for('lab') }}" class="btn btn-outline btn-large btn-outline-white">
+                        Start Creating
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section" id="features">
+            <div class="container">
+                <div class="features-grid-container" style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                    
+                    <div class="features-sticky-content" style="width: 100%; max-width: 800px; margin: 0 auto 3rem auto; position: static; ">
+                        <h2 class="section-title" style="text-align: center;">
+                            Discover the <span class="text-primary">Art</span> of Perfumery
+                        </h2>
+                        <p class="section-subtitle" style="margin: 1rem auto 0 auto; max-width: 600px; text-align: center;">
+                            A world of fragrance at your fingertips. From curated masterpieces to your own unique creations, find the scent that tells your story.
+                        </p>
+                        <div class="title-decorator" style="margin: 1.5rem auto;"></div>
+                    </div>
+
+                    <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; width: 100%;">
+                        
+                        <div class="feature-card">
+                            <span class="material-symbols-outlined card-icon">storefront</span>
+                            <h3 class="card-title">Curated Perfumes</h3>
+                            <p style="margin-bottom: 1.5rem;">Browse a curated selection of artisanal and designer perfumes from world-renowned noses.</p>
+                            <a href="{{ url_for('shop') }}" class="btn btn-primary" style="width: 100%; justify-content: center;">Visit Shop</a>
+                        </div>
+
+                        <div class="feature-card highlighted">
+                            <div class="card-badge">NEW</div>
+                            <span class="material-symbols-outlined card-icon">science</span>
+                            <h3 class="card-title">Virtual Scent Lab</h3>
+                            <p style="margin-bottom: 1.5rem;">Enter our digital laboratory. Mix base, middle, and top notes to craft a scent that is uniquely yours.</p>
+                            <a href="{{ url_for('lab') }}" class="btn btn-outline" style="width: 100%; justify-content: center; color: var(--color-text-dark); border-color: var(--color-text-dark);">Enter Lab</a>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="card-badge" style="background: #c4c2c2;">SOON</div>
+                            <span class="material-symbols-outlined card-icon">auto_awesome</span>
+                            <h3 class="card-title">AI Recommendations</h3>
+                            <p style="margin-bottom: 1.5rem;">Not sure where to start? Our smart engine suggests fragrances based on your mood.</p>
+                            <button class="btn btn-outline" style="width: 100%; justify-content: center; color: #999; border-color: #ddd; cursor: not-allowed;" disabled>Coming Soon</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-container" style="flex-direction: column; align-items: center; text-align: center;">
+            
+            <div class="footer-brand" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <h2 class="logo-text text-primary" style="margin-bottom: 1rem;">ScentCraft</h2>
+                <p class="footer-tagline" style="margin: 0 auto 2rem auto; max-width: 500px; text-align: center;">
+                    Crafting memories through the power of scent. Your journey to the perfect fragrance starts here.
+                </p>
+            </div>
+            
+            <div class="footer-links-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                
+                <div class="footer-socials" style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
+                    <a href="https://instagram.com" target="_blank" style="color: #fff; transition: 0.3s;"><span class="material-symbols-outlined">photo_camera</span></a>
+                    <!-- <a href="mailto:info@scentcraft.com" style="color: #fff; transition: 0.3s;"><span class="material-symbols-outlined">alternate_email</span></a> -->
+                    <a href="https://wa.me/" target="_blank" style="color: #fff; transition: 0.3s;"><span class="material-symbols-outlined">chat_bubble</span></a>
+                </div>
+
+                <div class="footer-legal-links" style="display: flex; justify-content: center; gap: 2rem; font-size: 0.9rem;">
+                    <a href="#" style="color: rgba(255,255,255,0.7);">Privacy Policy</a>
+                    <a href="#" style="color: rgba(255,255,255,0.7);">Terms of Service</a>
+                </div>
+                
+                <p class="footer-copyright" style="margin-top: 2rem; color: rgba(255,255,255,0.4);">© 2026 ScentCraft. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+    <div id="cart-sidebar" style="position: fixed; top: 0; right: -350px; width: 350px; height: 100vh; background: #fff; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.3s; z-index: 100; padding: 20px; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+        <h3 style="font-family: 'Playfair Display'; margin: 0;">Your Bag</h3>
+        <button onclick="toggleCart()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+    <div id="cart-items" style="flex: 1; overflow-y: auto; padding: 20px 0;">
+        <p style="text-align: center; color: #999;">Your cart is empty.</p>
+    </div>
+    <div style="border-top: 1px solid #eee; padding-top: 15px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px;">
+            <span>Total:</span>
+            <span id="cart-total">0 EGP</span>
+        </div>
+        <button style="width: 100%; background: #1a1a1a; color: #fff; padding: 15px; border: none; cursor: pointer; font-weight: bold;">CHECKOUT</button>
+    </div>
+</div>
+
+
+
+<script>
+    function toggleCart() {
+        const cart = document.getElementById('cart-sidebar');
+        if (cart.style.right === '0px') {
+            cart.style.right = '-350px';
+        } else {
+            cart.style.right = '0px';
+        }
+    }
+</script>
+
+
+</body>
+</html>

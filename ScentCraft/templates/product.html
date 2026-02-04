@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - ScentCraft</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <style>
+        .product-details-container { padding: 140px 5% 5rem; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        
+        /* Product Image */
+        .product-img-wrapper { background: #f9f9f9; border-radius: 20px; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .main-img { max-width: 80%; max-height: 80%; object-fit: contain; transition: 0.3s; }
+        .main-img:hover { transform: scale(1.05); }
+
+        /* Product Info */
+        .p-cat { color: #999; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .p-title { font-family: 'Playfair Display'; font-size: 3rem; margin-bottom: 20px; color: #1a1a1a; }
+        .p-price { font-size: 2rem; color: #D4AF37; font-weight: bold; margin-bottom: 30px; }
+        .p-desc { color: #666; line-height: 1.8; margin-bottom: 40px; font-size: 1.1rem; }
+        
+        /* Add to Cart Area */
+        .actions-wrapper { display: flex; gap: 20px; align-items: center; }
+        .qty-input { width: 80px; padding: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 1.2rem; text-align: center; }
+        .btn-add-main { flex: 1; background: #1a1a1a; color: #fff; border: none; padding: 18px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-add-main:hover { background: #D4AF37; color: #000; transform: translateY(-2px); }
+
+        /* Cart Sidebar Styles (نفس الستايل الموحد) */
+        #cart-sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100%; background: #fff; box-shadow: -5px 0 30px rgba(0,0,0,0.1); transition: 0.4s; z-index: 3000; display: flex; flex-direction: column; padding: 20px; }
+        #cart-sidebar.active { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .cart-body { flex: 1; overflow-y: auto; }
+        .cart-footer { border-top: 1px solid #eee; padding-top: 20px; }
+
+        @media (max-width: 900px) { .product-details-container { grid-template-columns: 1fr; text-align: center; } .actions-wrapper { justify-content: center; } }
+        
+        .floating-cart-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            background: #D4AF37; /* اللون الدهبي */
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2900; /* عشان يظهر فوق أي حاجة */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            animation: popIn 0.5s ease;
+        }
+        .floating-cart-btn:hover {
+            transform: scale(1.1);
+            background: #fff;
+            color: #D4AF37;
+        }
+        .cart-count-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 0.8rem;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px solid #fff;
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <header class="site-header scrolled" dir="rtl" style="background: #000;">
+        <div class="container">
+            <div class="header-actions">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.9rem;">Log Out</a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>{{ current_user.name.split(' ')[0] }}</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>
+                {% endif %}
+            </div>
+            <nav class="main-nav">
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('lab') }}">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+            <a href="{{ url_for('home') }}" class="logo-link"><h2 class="logo-text">ScentCraft</h2></a>
+        </div>
+    </header>
+
+    <main class="product-details-container">
+        <div class="product-img-wrapper">
+            <img src="{{ product.image }}" class="main-img" id="mainImg">
+        </div>
+
+        <div>
+            <div class="p-cat">{{ product.category }} Collection</div>
+            <h1 class="p-title" id="pName">{{ product.name }}</h1>
+            <div class="p-price" id="pPrice">{{ product.price }} EGP</div>
+            <p class="p-desc">{{ product.desc }}</p>
+            
+            <div class="actions-wrapper">
+                <input type="number" id="qtyInput" class="qty-input" value="1" min="1">
+                <button onclick="addToCartFromDetails()" class="btn-add-main">
+                    <span class="material-symbols-outlined">shopping_bag</span> Add to Cart
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Bag</h3>
+            <button onclick="toggleCart()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        
+        <div class="cart-body" id="cart-body">
+            <p id="empty-cart-msg" style="text-align:center; color:#999; margin-top:20px;">Your cart is empty.</p>
+        </div>
+        
+        <div class="cart-footer">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:15px;">
+                <span>Total:</span> <span id="cart-total-display">0 EGP</span>
+            </div>
+            
+            <div id="checkout-btn-wrapper">
+                {% if current_user.is_authenticated %}
+                    <button onclick="processCheckout()" 
+                       style="display:block; width:100%; background:#1a1a1a; color:#fff; padding:15px; border:none; cursor:pointer; font-weight:bold; transition:0.3s; font-family:'Montserrat';">
+                       CHECKOUT
+                    </button>
+                {% else %}
+                    <a href="{{ url_for('login') }}" 
+                       style="display:block; width:100%; background:#D4AF37; color:#000; padding:15px; border:none; cursor:pointer; text-decoration:none; text-align:center; font-weight:bold;">
+                       LOGIN TO CHECKOUT
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <button onclick="toggleCart()" class="floating-cart-btn" title="Open Cart">
+        <span class="material-symbols-outlined" style="font-size: 2rem;">shopping_bag</span>
+        
+    </button>
+
+    <script>
+        // 1. تهيئة السلة
+        let cart = JSON.parse(localStorage.getItem('scentCraftCart')) || [];
+        document.addEventListener('DOMContentLoaded', () => { renderCart(); });
+
+        // 2. الحفظ
+        function saveCart() { localStorage.setItem('scentCraftCart', JSON.stringify(cart)); renderCart(); }
+
+        // 3. الرسم (بناء شكل السلة)
+        function renderCart() {
+            const cartBody = document.getElementById('cart-body');
+            const totalDisplay = document.getElementById('cart-total-display');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            const headerCount = document.getElementById('header-cart-count');
+            const floatingCount = document.getElementById('floating-count');
+
+            let count = 0;
+            let total = 0;
+            cart.forEach(item => { count += item.qty; total += item.price * item.qty; });
+
+            // تحديث العدادات
+            if(headerCount) headerCount.innerText = count;
+            if(floatingCount) {
+                floatingCount.innerText = count;
+                floatingCount.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            // تحديث محتوى السلة الجانبية
+            if (cartBody && totalDisplay) {
+                cartBody.innerHTML = '';
+                if (cart.length === 0) {
+                    if(emptyMsg) emptyMsg.style.display = 'block';
+                    totalDisplay.innerText = '0 EGP';
+                    // إخفاء زرار الدفع لو السلة فاضية
+                    const btnWrapper = document.getElementById('checkout-btn-wrapper');
+                    if(btnWrapper) btnWrapper.style.display = 'none';
+                } else {
+                    if(emptyMsg) emptyMsg.style.display = 'none';
+                    // إظهار زرار الدفع
+                    const btnWrapper = document.getElementById('checkout-btn-wrapper');
+                    if(btnWrapper) btnWrapper.style.display = 'block';
+                    
+                    cart.forEach((item, index) => {
+                        const itemHTML = `
+                            <div class="cart-item" style="display:flex; align-items:center; gap:15px; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid #eee;">
+                                <img src="${item.image}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:bold; font-size:0.9rem;">${item.name}</div>
+                                    <div style="color:#666; font-size:0.8rem;">Qty: ${item.qty}</div>
+                                    <div style="color:#D4AF37;">${item.price} EGP</div>
+                                </div>
+                                <button onclick="removeItem(${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><span class="material-symbols-outlined">delete</span></button>
+                            </div>`;
+                        cartBody.insertAdjacentHTML('beforeend', itemHTML);
+                    });
+                    totalDisplay.innerText = total + " EGP";
+                }
+            }
+        }
+
+        // 4. دالة الدفع (الموتور الحقيقي) ⚙️
+        function processCheckout() {
+            if(cart.length === 0) return;
+
+            // إرسال البيانات للسيرفر (Python)
+            fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: cart })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // فضي السلة
+                    cart = [];
+                    saveCart();
+                    // حول العميل على البروفايل
+                    window.location.href = "{{ url_for('profile') }}";
+                } else {
+                    alert('Error processing order: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Something went wrong! Check console (F12) for details.');
+            });
+        }
+
+        // باقي الدوال (Add, Remove, Toggle)
+        function removeItem(index) { cart.splice(index, 1); saveCart(); }
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
+        
+        function addToCart(name, price, image) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) { existingItem.qty += 1; } else { cart.push({ name: name, price: price, image: image, qty: 1 }); }
+            saveCart(); toggleCart();
+        }
+
+        // دالة الإضافة من صفحة التفاصيل (لو موجودة)
+        function addToCartFromDetails() {
+            const nameEl = document.getElementById('pName');
+            if(!nameEl) return;
+            
+            const name = nameEl.innerText;
+            const price = parseFloat(document.getElementById('pPrice').innerText.replace(' EGP', ''));
+            const image = document.getElementById('mainImg').src;
+            const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+            
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) { existingItem.qty += qty; } else { cart.push({ name: name, price: price, image: image, qty: qty }); }
+            saveCart(); toggleCart();
+        }
+    </script>
+</body>
+</html>

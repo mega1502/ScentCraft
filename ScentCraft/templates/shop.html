@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScentCraft - Shop</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <style>
+        /* --- Hero Section --- */
+        .shop-hero { 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1541643600914-78b084683601?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+            background-attachment: fixed;
+            padding: 150px 0 100px;
+            text-align: center; 
+            color: #fff;
+            position: relative;
+        }
+        .shop-hero h1 { font-family: 'Playfair Display'; font-size: 3.5rem; margin-bottom: 15px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .shop-hero p { font-size: 1.2rem; color: #ddd; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* --- Layout --- */
+        .shop-container { display: flex; gap: 40px; max-width: 1300px; margin: 0 auto; padding: 60px 20px; }
+        .sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 100px; height: fit-content; }
+        .filter-group { margin-bottom: 30px; }
+        .filter-title { font-family: 'Playfair Display'; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .category-item { padding: 10px 0; border-bottom: 1px dashed #eee; cursor: pointer; color: #555; transition: 0.3s; display: flex; justify-content: space-between; }
+        .category-item:hover, .category-item.active { color: #D4AF37; font-weight: bold; padding-left: 10px; }
+        input[type=range] { width: 100%; accent-color: #D4AF37; }
+        
+        /* Product Grid */
+        .products-area { flex-grow: 1; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
+        
+        /* Product Card */
+        .product-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #f0f0f0; position: relative; }
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .card-img-wrapper { position: relative; height: 300px; overflow: hidden; background: #f9f9f9; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .product-card:hover .card-img { transform: scale(1.05); }
+
+        .card-actions { position: absolute; bottom: 0; left: 0; width: 100%; padding: 15px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; gap: 10px; transform: translateY(100%); transition: 0.3s; }
+        .product-card:hover .card-actions { transform: translateY(0); }
+        .action-btn { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.85rem; text-decoration: none; text-align: center; }
+        .btn-add { background: #D4AF37; color: #000; }
+        .btn-view { background: #fff; color: #000; }
+        
+        .card-info { padding: 15px; text-align: center; }
+        .c-cat { color: #999; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+        .c-title { font-family: 'Playfair Display'; margin: 5px 0; font-size: 1.1rem; color: #1a1a1a; }
+        .c-price { color: #D4AF37; font-weight: bold; }
+
+        /* Admin Delete Button */
+        .admin-delete-product { position: absolute; top: 10px; left: 10px; z-index: 20; background: #ffebee; color: #c62828; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: 0.3s; }
+        .admin-delete-product:hover { background: #c62828; color: #fff; transform: scale(1.1); }
+
+        /* Floating Cart Button Style */
+        .floating-cart-btn { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: #D4AF37; color: #000; border: none; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 2900; display: flex; align-items: center; justify-content: center; transition: 0.3s; animation: popIn 0.5s ease; }
+        .floating-cart-btn:hover { transform: scale(1.1); background: #fff; color: #D4AF37; }
+        .cart-count-badge { position: absolute; top: 0; right: 0; background: #1a1a1a; color: #fff; font-size: 0.8rem; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; }
+        
+        /* Cart Sidebar (Unified Style) */
+        #cart-sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100%; background: #fff; box-shadow: -5px 0 30px rgba(0,0,0,0.1); transition: 0.4s; z-index: 3000; display: flex; flex-direction: column; padding: 20px; }
+        #cart-sidebar.active { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .cart-body { flex: 1; overflow-y: auto; }
+        .cart-footer { border-top: 1px solid #eee; padding-top: 20px; }
+
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        @media (max-width: 900px) { .shop-container { flex-direction: column; } .sidebar { width: 100%; position: static; } }
+    </style>
+</head>
+<body>
+
+    <header class="site-header scrolled" dir="rtl" style="background: #000;">
+        <div class="container">
+            <div class="header-actions" style="display: flex; align-items: center;">
+                <button onclick="toggleCart()" class="cart-icon-btn" title="View Cart" style="background:none; border:none; color:#fff; cursor:pointer; position:relative; margin-right:15px; display:flex; align-items:center;">
+                    <span class="material-symbols-outlined" style="font-size: 1.8rem;">shopping_bag</span>
+                    <span class="cart-count" id="header-cart-count" style="position:absolute; top:-8px; right:-8px; background:#D4AF37; color:#000; font-size:0.7rem; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">0</span>
+                </button>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.9rem; margin-left:10px;">Log Out</a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>{{ current_user.name.split(' ')[0] }}</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>
+                {% endif %}
+            </div>
+            <nav class="main-nav">
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('lab') }}">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+            <a href="{{ url_for('home') }}" class="logo-link"><h2 class="logo-text">ScentCraft</h2></a>
+        </div>
+    </header>
+
+    <main>
+        <section class="shop-hero">
+            <h1>Our Collection</h1>
+            <p>Explore 100+ Unique Masterpieces</p>
+            
+            {% if current_user.is_authenticated and current_user.is_admin %}
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="document.getElementById('addModal').style.display='block'" 
+                       style="background: #fff; color: #000; padding: 15px 30px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; font-size: 1rem; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                        <span class="material-symbols-outlined">add_circle</span> Add New Product
+                    </button>
+                </div>
+            {% endif %}
+        </section>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="max-width: 600px; margin: 20px auto; padding: 15px; text-align: center; border-radius: 8px; 
+                         background: {{ '#e8f5e9' if category == 'success' else '#ffebee' }}; 
+                         color: {{ '#2e7d32' if category == 'success' else '#c62828' }};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="shop-container">
+            <aside class="sidebar">
+                <div class="filter-group">
+                    <h3 class="filter-title">Categories</h3>
+                    <div class="category-item active" onclick="filterProducts('all', this)">All Perfumes</div>
+                    <div class="category-item" onclick="filterProducts('Men', this)">Men's Collection</div>
+                    <div class="category-item" onclick="filterProducts('Women', this)">Women's Collection</div>
+                    <div class="category-item" onclick="filterProducts('Unisex', this)">Unisex / Niche</div>
+                </div>
+                <div class="filter-group">
+                    <h3 class="filter-title">Price Range</h3>
+                    <input type="range" id="priceRange" min="500" max="6000" value="6000" oninput="updatePrice(this.value)">
+                    <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.9rem; color:#666;">
+                        <span>500 EGP</span> <span id="priceValue">6000 EGP</span>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="products-area">
+                <div class="product-grid" id="grid">
+                    {% for product in products %}
+                    <div class="product-card" data-category="{{ product.category }}" data-price="{{ product.price }}">
+                        <div class="card-img-wrapper">
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                                <a href="{{ url_for('delete_product', id=product.id) }}" class="admin-delete-product" title="Delete Product" onclick="return confirm('Are you sure?')">
+                                    <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
+                                </a>
+                            {% endif %}
+                            
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('toggle_wishlist', product_id=product.id) }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #fff; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #D4AF37;" title="Wishlist">
+                                    <span class="material-symbols-outlined" style="font-size: 1.2rem;">favorite</span>
+                                </a>
+                            {% endif %}
+                            
+                            <img src="{{ product.image }}" class="card-img" loading="lazy">
+                            <div class="card-actions">
+                                <button class="action-btn btn-add" onclick="addToCart('{{ product.name }}', {{ product.price }}, '{{ product.image }}')">Add to Cart</button>
+                                <a href="{{ url_for('product_details', product_id=product.id) }}" class="action-btn btn-view">Details</a>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <div class="c-cat">{{ product.category }}</div>
+                            <h3 class="c-title">{{ product.name }}</h3>
+                            <div class="c-price">{{ product.price }} EGP</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div id="noResults" style="display:none; text-align:center; padding:40px; color:#999;">
+                    <span class="material-symbols-outlined" style="font-size:3rem;">search_off</span>
+                    <p>No products found matching your selection.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Bag</h3>
+            <button onclick="toggleCart()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="cart-body" id="cart-body">
+            <p id="empty-cart-msg" style="text-align:center; color:#999; margin-top:20px;">Your cart is empty.</p>
+        </div>
+        <div class="cart-footer">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:15px;">
+                <span>Total:</span> <span id="cart-total-display">0 EGP</span>
+            </div>
+            <div id="checkout-btn-wrapper">
+                {% if current_user.is_authenticated %}
+                    <button onclick="processCheckout()" style="display:block; width:100%; background:#1a1a1a; color:#fff; padding:15px; border:none; cursor:pointer; font-weight:bold; transition:0.3s; font-family:'Montserrat';">CHECKOUT</button>
+                {% else %}
+                    <a href="{{ url_for('login') }}" style="display:block; width:100%; background:#D4AF37; color:#000; padding:15px; border:none; cursor:pointer; text-decoration:none; text-align:center; font-weight:bold;">LOGIN TO CHECKOUT</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <button onclick="toggleCart()" class="floating-cart-btn" title="Open Cart">
+        <span class="material-symbols-outlined" style="font-size: 2rem;">shopping_bag</span>
+        <span class="cart-count-badge" id="floating-count">0</span>
+    </button>
+
+    <div id="addModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+        <div style="background-color: #fff; margin: 5% auto; padding: 30px; border-radius: 15px; width: 500px; max-width: 90%; position: relative;">
+            <span onclick="document.getElementById('addModal').style.display='none'" style="position: absolute; right: 20px; top: 15px; font-size: 2rem; cursor: pointer; color: #999;">&times;</span>
+            <h2 style="font-family:'Playfair Display'; margin-bottom: 20px; text-align: center;">Add Product</h2>
+            <form action="{{ url_for('add_product') }}" method="POST" enctype="multipart/form-data">
+                <div style="margin-bottom: 15px;"><label style="display: block; font-weight: bold; margin-bottom: 5px;">Product Name</label><input type="text" name="name" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></div>
+                <div style="margin-bottom: 15px;"><label style="display: block; font-weight: bold; margin-bottom: 5px;">Category</label><select name="category" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"><option value="Men">Men</option><option value="Women">Women</option><option value="Unisex">Unisex</option></select></div>
+                <div style="margin-bottom: 15px;"><label style="display: block; font-weight: bold; margin-bottom: 5px;">Price (EGP)</label><input type="number" name="price" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></div>
+                <div style="margin-bottom: 15px;"><label style="display: block; font-weight: bold; margin-bottom: 5px;">Description</label><textarea name="desc" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></textarea></div>
+                <div style="margin-bottom: 20px;"><label style="display: block; font-weight: bold; margin-bottom: 5px;">Product Image</label><input type="file" name="image" accept="image/*" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></div>
+                <button type="submit" style="width: 100%; background: #D4AF37; color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Publish Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 1. FILTER FUNCTIONS (تمت إعادتها للعمل)
+        function filterProducts(category, element) {
+            // تحديث الشكل (اللون الدهبي)
+            document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            // تحديث الفلتر
+            const cards = document.querySelectorAll('.product-card');
+            const maxPrice = parseInt(document.getElementById('priceRange').value);
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const cardCat = card.getAttribute('data-category');
+                const cardPrice = parseInt(card.getAttribute('data-price'));
+
+                const matchCat = (category === 'all' || cardCat === category);
+                const matchPrice = (cardPrice <= maxPrice);
+
+                if (matchCat && matchPrice) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const noRes = document.getElementById('noResults');
+            if(noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        function updatePrice(val) {
+            document.getElementById('priceValue').innerText = val + ' EGP';
+            // إعادة تشغيل الفلتر بناءً على الفئة النشطة حالياً
+            const activeCat = document.querySelector('.category-item.active');
+            const category = activeCat ? (activeCat.innerText === 'All Perfumes' ? 'all' : (activeCat.innerText.includes('Men') ? 'Men' : (activeCat.innerText.includes('Women') ? 'Women' : 'Unisex'))) : 'all';
+            
+            // عشان نسهل الموضوع: هننادي نفس لوجيك الفلترة
+            const cards = document.querySelectorAll('.product-card');
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                // ملاحظة: هنا بنعمل فلتر سريع
+                const cardPrice = parseInt(card.getAttribute('data-price'));
+                const cardCat = card.getAttribute('data-category');
+                // نستخدم الكود المبسط
+                 if(cardPrice <= val && (category === 'all' || cardCat === category)) {
+                     card.style.display = 'block'; visibleCount++;
+                 } else { card.style.display = 'none'; }
+            });
+            const noRes = document.getElementById('noResults');
+            if(noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+
+        // 2. CART & CHECKOUT LOGIC
+        let cart = JSON.parse(localStorage.getItem('scentCraftCart')) || [];
+        document.addEventListener('DOMContentLoaded', () => { renderCart(); });
+
+        function saveCart() { localStorage.setItem('scentCraftCart', JSON.stringify(cart)); renderCart(); }
+
+        function renderCart() {
+            const cartBody = document.getElementById('cart-body');
+            const totalDisplay = document.getElementById('cart-total-display');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            const headerCount = document.getElementById('header-cart-count');
+            const floatingCount = document.getElementById('floating-count');
+            const btnWrapper = document.getElementById('checkout-btn-wrapper');
+
+            let count = 0;
+            let total = 0;
+            cart.forEach(item => { count += item.qty; total += item.price * item.qty; });
+
+            if(headerCount) headerCount.innerText = count;
+            if(floatingCount) {
+                floatingCount.innerText = count;
+                floatingCount.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            if (cartBody && totalDisplay) {
+                cartBody.innerHTML = '';
+                if (cart.length === 0) {
+                    if(emptyMsg) emptyMsg.style.display = 'block';
+                    totalDisplay.innerText = '0 EGP';
+                    if(btnWrapper) btnWrapper.style.display = 'none';
+                } else {
+                    if(emptyMsg) emptyMsg.style.display = 'none';
+                    if(btnWrapper) btnWrapper.style.display = 'block';
+                    
+                    cart.forEach((item, index) => {
+                        const itemHTML = `
+                            <div class="cart-item" style="display:flex; align-items:center; gap:15px; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid #eee;">
+                                <img src="${item.image}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:bold; font-size:0.9rem;">${item.name}</div>
+                                    <div style="color:#666; font-size:0.8rem;">Qty: ${item.qty}</div>
+                                    <div style="color:#D4AF37;">${item.price} EGP</div>
+                                </div>
+                                <button onclick="removeItem(${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><span class="material-symbols-outlined">delete</span></button>
+                            </div>`;
+                        cartBody.insertAdjacentHTML('beforeend', itemHTML);
+                    });
+                    totalDisplay.innerText = total + " EGP";
+                }
+            }
+        }
+
+        function processCheckout() {
+            if(cart.length === 0) return;
+            fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: cart })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    cart = []; saveCart();
+                    window.location.href = "{{ url_for('profile') }}";
+                } else { alert('Error processing order.'); }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function removeItem(index) { cart.splice(index, 1); saveCart(); }
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
+        function addToCart(name, price, image) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) { existingItem.qty += 1; } else { cart.push({ name: name, price: price, image: image, qty: 1 }); }
+            saveCart(); toggleCart();
+        }
+        
+        // Modal Logic
+        window.onclick = function(event) {
+            var modal = document.getElementById('addModal');
+            if (event.target == modal) { modal.style.display = "none"; }
+        }
+    </script>
+</body>
+</html>
