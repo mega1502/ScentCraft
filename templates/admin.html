@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ScentCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .admin-container { padding: 140px 5% 5rem; max-width: 1200px; margin: 0 auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
+        h1 { font-family: 'Playfair Display'; font-size: 2.5rem; color: #1a1a1a; }
+        
+        .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 40px; }
+        
+        /* Form Card */
+        .form-card { background: #fff; padding: 30px; border-radius: 15px; border: 1px solid #eee; box-shadow: 0 5px 20px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 120px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat'; }
+        .btn-submit { width: 100%; background: #1a1a1a; color: #fff; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-submit:hover { background: #D4AF37; color: #000; }
+
+        /* Products Table */
+        .table-wrapper { background: #fff; border-radius: 15px; border: 1px solid #eee; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 15px; background: #f9f9f9; text-align: left; }
+        td { padding: 15px; border-top: 1px solid #eee; vertical-align: middle; }
+        .prod-img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+        
+        .btn-delete { background: #ffebee; color: #c62828; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: bold; }
+        .btn-delete:hover { background: #c62828; color: #fff; }
+
+        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header class="site-header scrolled" dir="rtl" style="background: #000;">
+        <div class="container">
+            <div class="header-actions">
+                <a href="{{ url_for('logout') }}" class="btn btn-outline">Log Out</a>
+                <a href="{{ url_for('profile') }}" class="btn btn-primary">My Profile</a>
+            </div>
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+            <a href="{{ url_for('home') }}" class="logo-link"><h2 class="logo-text">ScentCraft</h2></a>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <div class="admin-header">
+            <h1>Admin Dashboard</h1>
+            <a href="{{ url_for('shop') }}" class="btn btn-outline">View Shop</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding: 15px; background: #e8f5e9; color: #2e7d32; border-radius: 8px; margin-bottom: 20px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="grid-layout">
+            
+            <aside>
+                <div class="form-card">
+                    <h3 style="margin-bottom: 20px; font-family:'Playfair Display';">Add New Product</h3>
+                    <form action="{{ url_for('add_product') }}" method="POST" enctype="multipart/form-data">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Product Name</label>
+                            <input type="text" name="name" class="form-input" required placeholder="Ex: Royal Oud">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-input">
+                                <option value="Men">Men</option>
+                                <option value="Women">Women</option>
+                                <option value="Unisex">Unisex</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Price (EGP)</label>
+                            <input type="number" name="price" class="form-input" required placeholder="1500">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea name="desc" class="form-input" rows="3" placeholder="Describe the scent..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Product Image</label>
+                            <input type="file" name="image" class="form-input" accept="image/*">
+                        </div>
+
+                        <button type="submit" class="btn-submit">Add Product</button>
+                    </form>
+                </div>
+            </aside>
+
+            <section>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td><img src="{{ product.image }}" class="prod-img"></td>
+                                <td style="font-weight:bold;">{{ product.name }}</td>
+                                <td style="color:#D4AF37;">{{ product.price }} EGP</td>
+                                <td><span style="font-size:0.8rem; background:#f0f0f0; padding:2px 8px; border-radius:10px;">{{ product.category }}</span></td>
+                                <td>
+                                    <a href="{{ url_for('delete_product', id=product.id) }}" class="btn-delete" onclick="return confirm('Delete this product permanently?')">
+                                        <span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</body>
+</html>

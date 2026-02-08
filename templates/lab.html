@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScentCraft - Ultimate Lab</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <style>
+        /* --- 1. THEME VARIABLES --- */
+        :root { --gold: #D4AF37; --gold-dim: #8a7020; --bg-dark: #ffffff; --glass: rgba(255, 255, 255, 0.08); }
+        body.lab-page { background-color: var(--bg-dark); background-image: radial-gradient(circle at 50% 30%, #1b1b1b 0%, #000 80%); color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
+        .lab-wrapper { display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; min-height: 90vh; padding: 2rem 5%; align-items: flex-start; max-width: 1400px; margin: 0 auto; }
+        
+        /* Left Stage */
+        .visual-stage { position: sticky; top: 100px; height: 600px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .stage-controls { position: absolute; top: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 20; }
+        .selector-group { display: flex; gap: 10px; background: var(--glass); padding: 8px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .shape-btn, .size-btn { background: transparent; border: none; cursor: pointer; color: #777; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .shape-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid transparent; }
+        .size-btn { font-family: 'Playfair Display'; font-size: 0.9rem; padding: 5px 10px; }
+        .shape-btn.active, .size-btn.active { color: var(--gold); border-color: var(--gold); }
+        .size-btn.active { text-decoration: underline; }
+        .icon-classic { width: 12px; height: 20px; border: 1px solid currentColor; border-radius: 3px 3px 10px 10px; }
+        .icon-square { width: 16px; height: 20px; border: 1px solid currentColor; border-radius: 1px; }
+        .icon-round { width: 18px; height: 18px; border: 1px solid currentColor; border-radius: 50%; }
+
+        /* Bottle */
+        .bottle-wrapper { margin-top: 5rem; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .bottle-glass { width: 200px; height: 320px; position: relative; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: inset 0 0 20px rgba(255,255,255,0.1), 0 20px 50px rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 10; overflow: hidden; transition: all 0.5s ease; }
+        .s-classic { border-radius: 10px 10px 40px 40px; }
+        .s-square { border-radius: 5px; width: 220px; }
+        .s-round { border-radius: 50%; width: 270px; height: 270px; }
+        .cap-premium { width: 70px; height: 45px; background: linear-gradient(135deg, #b38728, #fcf6ba, #bf953f); position: absolute; top: -45px; left: 50%; transform: translateX(-50%); border-radius: 3px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 5; }
+        .etched-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; text-align: center; z-index: 15; pointer-events: none; }
+        .etched-text { font-family: 'Playfair Display'; color: rgba(255,255,255,0.9); font-size: 1.5rem; letter-spacing: 2px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+
+        /* Liquid */
+        .liquid-volumetric { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: transparent; opacity: 0.9; transition: height 0.5s ease, background 0.8s ease; z-index: 8; }
+        .liquid-volumetric::after { content: ''; position: absolute; top: -15px; left: 50%; transform: translate(-50%, 0); width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 40% 45%; animation: wave 6s linear infinite; }
+        @keyframes wave { from { transform: translate(-50%, 0) rotate(0deg); } to { transform: translate(-50%, 0) rotate(360deg); } }
+
+        /* Dashboard */
+        .controls-area { background: rgba(20, 20, 20, 0.7); border-radius: 20px; border: 1px solid #333; padding: 2rem; backdrop-filter: blur(20px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .custom-name-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #444; color: var(--gold); font-family: 'Playfair Display'; font-size: 1.4rem; padding: 10px 0; margin-bottom: 2rem; outline: none; text-align: center; }
+        .control-group { margin-bottom: 1.5rem; }
+        .group-header { display: flex; justify-content: space-between; color: #bbb; font-size: 0.85rem; margin-bottom: 10px; }
+        .chips-row { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .chip-btn { background: #222; border: 1px solid #444; color: #888; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .chip-btn:hover { background: #333; }
+        .chip-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.15); box-shadow: 0 0 10px rgba(212, 175, 55, 0.1); }
+        .delete-ing-btn { color: #ff4d4d; font-weight: bold; padding: 0 5px; border-radius: 50%; font-size: 1rem; line-height: 1; transition: 0.3s; }
+        .delete-ing-btn:hover { background: rgba(255, 77, 77, 0.2); }
+        input[type="range"] { width: 100%; height: 4px; background: #333; border-radius: 2px; -webkit-appearance: none; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--gold); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--gold); }
+
+        /* --- MODERN LUXURY RECEIPT --- */
+        .receipt-container {
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 0;
+            margin-top: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .receipt-header {
+            padding: 15px; text-align: center; font-weight: bold;
+            font-family: 'Playfair Display'; letter-spacing: 2px;
+            color: var(--gold);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+        }
+        .receipt-body {
+            padding: 20px;
+            min-height: 120px; max-height: 250px; overflow-y: auto;
+        }
+        .receipt-body::-webkit-scrollbar { width: 4px; }
+        .receipt-body::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+        .rec-row {
+            display: flex; justify-content: space-between; font-size: 0.9rem; 
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(255,255,255,0.1); color: #eee;
+            animation: slideIn 0.3s ease;
+        }
+        .rec-row:last-child { border-bottom: none; }
+        .rec-total {
+            padding: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border-top: 1px solid rgba(212, 175, 55, 0.3);
+            display: flex; justify-content: space-between; font-weight: bold; 
+            font-size: 1.3rem; color: var(--gold); font-family: 'Playfair Display';
+        }
+        .empty-receipt-msg {
+            text-align: center; color: #666; font-size: 0.85rem; font-style: italic;
+            margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .btn-gold-action { width: 100%; padding: 18px; background: linear-gradient(to right, var(--gold), var(--gold-dim)); border: none; color: #000; font-weight: bold; font-family: 'Playfair Display'; font-size: 1.1rem; letter-spacing: 1px; cursor: pointer; margin-top: 25px; border-radius: 4px; transition: 0.3s; }
+        .btn-gold-action:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); }
+        .btn-gold-action:disabled { background: #444; color: #888; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-save-recipe { 
+            width: 100%; padding: 12px; background: transparent; 
+            border: 1px solid var(--gold); color: var(--gold); 
+            font-weight: bold; font-family: 'Montserrat'; font-size: 0.9rem; 
+            cursor: pointer; margin-top: 10px; border-radius: 4px; transition: 0.3s; 
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-save-recipe:hover { background: rgba(212, 175, 55, 0.1); transform: translateY(-1px); }
+
+        /* --- ✨ PREMIUM CART SIDEBAR (New Design) ✨ --- */
+        .cart-icon-btn { background: none; border: none; color: #fff; cursor: pointer; position: relative; margin-right: 15px; display: flex; align-items: center; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--gold); color: #000; font-size: 0.7rem; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        #cart-sidebar {
+            position: fixed; top: 0; right: -450px; width: 400px; height: 100%;
+            background: rgba(15, 15, 15, 0.98); /* لون غامق جداً */
+            color: #fff;
+            box-shadow: -15px 0 50px rgba(0,0,0,0.9);
+            border-left: 1px solid #333;
+            transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1); /* حركة ناعمة */
+            z-index: 3000; display: flex; flex-direction: column;
+        }
+        #cart-sidebar.active { right: 0; }
+
+        /* Cart Header */
+        .cart-header {
+            padding: 30px; 
+            border-bottom: 1px solid #222;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02);
+        }
+        .cart-header h3 { 
+            font-family: 'Playfair Display'; margin: 0; 
+            font-size: 1.8rem; color: var(--gold); 
+        }
+        .close-cart { 
+            background: none; border: none; color: #666; font-size: 2rem; 
+            cursor: pointer; transition: 0.3s; 
+        }
+        .close-cart:hover { color: #fff; transform: rotate(90deg); }
+
+        /* Cart Body & Items */
+        .cart-body { flex: 1; overflow-y: auto; padding: 25px; }
+        
+        .cart-item {
+            display: grid; grid-template-columns: 80px 1fr 40px; gap: 15px;
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 12px; margin-bottom: 20px;
+            align-items: center; position: relative; overflow: hidden;
+            transition: 0.3s;
+        }
+        .cart-item:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+
+        .cart-img-wrapper {
+            width: 80px; height: 80px; background: #fff; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 5px;
+        }
+        .cart-img-wrapper img { width: 100%; height: 100%; object-fit: contain; }
+
+        .item-info h4 { margin: 0 0 5px; font-size: 1rem; color: #fff; }
+        .item-info .formula { font-size: 0.75rem; color: #888; font-style: italic; display: block; margin-bottom: 8px; line-height: 1.4; }
+        .item-info .price-tag { color: var(--gold); font-weight: bold; font-size: 0.95rem; }
+        .item-info .qty-badge { font-size: 0.8rem; background: #333; padding: 2px 8px; border-radius: 4px; color: #ccc; margin-left: 8px; }
+
+        .delete-btn {
+            background: none; border: none; color: #444; cursor: pointer;
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .delete-btn:hover { color: #ff4d4d; }
+
+        /* Cart Footer */
+        .cart-footer {
+            padding: 30px; background: #111; border-top: 1px solid #222;
+        }
+        .subtotal { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 1.1rem; color: #aaa; }
+        .final-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 1.5rem; font-weight: bold; font-family: 'Playfair Display'; color: #fff; }
+        .final-total span:last-child { color: var(--gold); }
+
+        /* --- ✨ NEW ADMIN FAB --- */
+        .admin-fab { position: fixed; bottom: 30px; left: 30px; z-index: 1000; display: flex; flex-direction: column-reverse; gap: 15px; align-items: center; }
+        .fab-btn { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fab-main { background: linear-gradient(135deg, #D4AF37, #8a7020); color: #000; font-size: 1.8rem; }
+        .fab-main:hover { transform: rotate(90deg) scale(1.1); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6); }
+        .fab-sub { width: 50px; height: 50px; background: #fff; color: #000; opacity: 0; transform: translateY(20px) scale(0); pointer-events: none; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .fab-sub::after { content: attr(data-tooltip); position: absolute; left: 60px; background: #333; color: #fff; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; white-space: nowrap; opacity: 0; transition: 0.2s; pointer-events: none; }
+        .fab-sub:hover::after { opacity: 1; left: 65px; }
+        .fab-sub:hover { background: #D4AF37; color: #fff; }
+        .admin-fab:hover .fab-sub { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+        .admin-fab:hover .fab-sub:nth-child(2) { transition-delay: 0.05s; }
+        .admin-fab:hover .fab-sub:nth-child(3) { transition-delay: 0.1s; }
+
+        @media (max-width: 900px) { .lab-wrapper { grid-template-columns: 1fr; gap: 2rem; } .visual-stage { height: 500px; position: relative; top: 0; } #cart-sidebar { width: 100%; right: -100%; } }
+    </style>
+</head>
+<body class="lab-page">
+    
+    <header class="site-header" dir="rtl" style="background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);">
+        <div class="container">
+            <div class="header-actions">
+                <button onclick="toggleCart()" class="cart-icon-btn">
+                    <span class="material-symbols-outlined" style="font-size: 1.8rem;">shopping_bag</span>
+                    <span class="cart-count" id="header-cart-count">0</span>
+                </button>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 15px;">Log Out</a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">person</span>
+                        <span>{{ current_user.name.split(' ')[0] }}</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary" style="font-size: 0.8rem;">Log In</a>
+                {% endif %}
+            </div>
+            <nav class="main-nav">
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('lab') }}" style="color: var(--gold);">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+            <a href="{{ url_for('home') }}" class="logo-link"><h2 class="logo-text" style="color: #fff;">ScentCraft</h2></a>
+        </div>
+    </header>
+
+    <main style="padding-top: 80px;">
+        <div class="lab-wrapper">
+            
+            <div class="visual-stage">
+                <div class="stage-controls">
+                    <div class="selector-group">
+                        <button class="shape-btn active" onclick="setShape('s-classic')" title="Classic"><div class="icon-classic"></div></button>
+                        <button class="shape-btn" onclick="setShape('s-square')" title="Modern"><div class="icon-square"></div></button>
+                        <button class="shape-btn" onclick="setShape('s-round')" title="Orb"><div class="icon-round"></div></button>
+                    </div>
+                    <div class="selector-group" style="margin-top:5px;">
+                        <button class="size-btn" onclick="setSize(50)">50ml</button>
+                        <button class="size-btn active" onclick="setSize(100)">100ml</button>
+                        <button class="size-btn" onclick="setSize(200)">200ml</button>
+                    </div>
+                </div>
+
+                <div class="bottle-wrapper" id="bottle-obj">
+                    <div class="bottle-glass s-classic" id="main-bottle">
+                        <div class="cap-premium"></div>
+                        <div class="liquid-volumetric" id="liquid"></div>
+                        <div class="etched-label">
+                            <div class="etched-text" id="label-text">CUSTOM</div>
+                            <div style="font-size:0.7rem; margin-top:5px; color:var(--gold); letter-spacing:1px;" id="label-vol">100 ML</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-area">
+                <div class="section-header">Compose Your Scent</div>
+                <input type="text" id="name-input" class="custom-name-input" placeholder="Name Your Creation..." maxlength="18">
+
+                <div class="control-group">
+                    <div class="group-header"><span>TOP NOTE (Opening)</span> <span id="top-val" style="color:var(--gold);">0%</span></div>
+                    <div class="chips-row" id="top-opts">
+                        {% for ing in top %}
+                        <div class="chip-btn" data-price="{{ ing.price }}" data-name="{{ ing.name }}" data-color="{{ ing.color }}">
+                            {{ ing.name }}
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                                <span class="delete-ing-btn" onclick="event.stopPropagation(); if(confirm('Delete {{ ing.name }}?')) window.location.href='{{ url_for('delete_ingredient', id=ing.id) }}'">&times;</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="chip-btn" data-price="5" data-name="Bergamot" data-color="#FFFACD">Bergamot</div>
+                        {% endfor %}
+                    </div>
+                    <input type="range" id="top-slider" max="100" value="0">
+                </div>
+
+                <div class="control-group">
+                    <div class="group-header"><span>HEART NOTE (Core)</span> <span id="heart-val" style="color:var(--gold);">0%</span></div>
+                    <div class="chips-row" id="heart-opts">
+                        {% for ing in heart %}
+                        <div class="chip-btn" data-price="{{ ing.price }}" data-name="{{ ing.name }}" data-color="{{ ing.color }}">
+                            {{ ing.name }}
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                                <span class="delete-ing-btn" onclick="event.stopPropagation(); if(confirm('Delete {{ ing.name }}?')) window.location.href='{{ url_for('delete_ingredient', id=ing.id) }}'">&times;</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="chip-btn" data-price="10" data-name="Rose" data-color="#FFB7C5">Rose</div>
+                        {% endfor %}
+                    </div>
+                    <input type="range" id="heart-slider" max="100" value="0">
+                </div>
+
+                <div class="control-group">
+                    <div class="group-header"><span>BASE NOTE (Lasting)</span> <span id="base-val" style="color:var(--gold);">0%</span></div>
+                    <div class="chips-row" id="base-opts">
+                        {% for ing in base %}
+                        <div class="chip-btn" data-price="{{ ing.price }}" data-name="{{ ing.name }}" data-color="{{ ing.color }}">
+                            {{ ing.name }}
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                                <span class="delete-ing-btn" onclick="event.stopPropagation(); if(confirm('Delete {{ ing.name }}?')) window.location.href='{{ url_for('delete_ingredient', id=ing.id) }}'">&times;</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="chip-btn" data-price="20" data-name="Oud" data-color="#8B4513">Oud</div>
+                        {% endfor %}
+                    </div>
+                    <input type="range" id="base-slider" max="100" value="0">
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px dashed #444; padding-top: 15px;">
+                    <button onclick="analyzeScent()" style="background:transparent; border:1px solid var(--gold); color:var(--gold); padding:8px 15px; border-radius:20px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:5px; margin-bottom:10px;">
+                        <span class="material-symbols-outlined" style="font-size:1rem;">auto_awesome</span> Analyze Profile (AI)
+                    </button>
+                    <div id="ai-result" style="display:none; background:rgba(212, 175, 55, 0.1); padding:15px; border-radius:10px; border-left:3px solid var(--gold);">
+                        <div style="font-family:'Playfair Display'; color:var(--gold); font-weight:bold; margin-bottom:5px;">✨ Olfactory Signature</div>
+                        <p id="ai-text" style="font-size:0.85rem; color:#ddd; line-height:1.6; margin:0; font-style:italic;">...</p>
+                    </div>
+                </div>
+
+                <div class="receipt-container">
+                    <div class="receipt-header">SCENTCRAFT ATELIER</div>
+                    <div class="receipt-body" id="bill-items">
+                        </div>
+                    <div class="rec-total">
+                        <span>TOTAL</span> <span id="total-price">0 LE</span>
+                    </div>
+                </div>
+
+                <button class="btn-gold-action" id="craft-btn" disabled>CRAFT THIS</button>
+                
+                {% if current_user.is_authenticated %}
+                <button onclick="saveMyFormula()" class="btn-save-recipe" id="save-btn" disabled>
+                    <span class="material-symbols-outlined" style="font-size:1.1rem;">bookmark</span> Save Recipe
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <div class="admin-fab">
+        <button class="fab-btn fab-main"><span class="material-symbols-outlined">settings</span></button>
+        <button class="fab-btn fab-sub" data-tooltip="Bottle Prices" onclick="document.getElementById('priceModal').style.display='flex'"><span class="material-symbols-outlined">payments</span></button>
+        <button class="fab-btn fab-sub" data-tooltip="Add Ingredient" onclick="document.getElementById('ingModal').style.display='flex'"><span class="material-symbols-outlined">science</span></button>
+    </div>
+    {% endif %}
+
+    <div id="ingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:30px; border-radius:10px; width:400px; color:#000;">
+            <h3 style="font-family:'Playfair Display'; margin-bottom:20px; text-align:center;">Add New Ingredient</h3>
+            <form action="{{ url_for('add_ingredient') }}" method="POST">
+                <input type="text" name="name" placeholder="Name" required style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+                <select name="category" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+                    <option value="top">Top Note</option><option value="heart">Heart Note</option><option value="base">Base Note</option>
+                </select>
+                <input type="number" name="price" placeholder="Price" required style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+                <input type="color" name="color" value="#D4AF37" style="width:100%; height:40px; margin-bottom:20px; cursor:pointer;">
+                <button type="submit" class="btn-primary" style="width:100%; border:none; padding:10px; background:#1a1a1a; color:#fff; cursor:pointer;">Add Ingredient</button>
+            </form>
+            <button onclick="document.getElementById('ingModal').style.display='none'" style="margin-top:10px; width:100%; background:none; border:none; color:#666; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="priceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:30px; border-radius:10px; width:350px; color:#000;">
+            <h3 style="font-family:'Playfair Display'; margin-bottom:20px; text-align:center;">Edit Bottle Prices</h3>
+            <form action="{{ url_for('update_prices') }}" method="POST">
+                <input type="number" name="price_50" value="{{ prices['50'] }}" required style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+                <input type="number" name="price_100" value="{{ prices['100'] }}" required style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+                <input type="number" name="price_200" value="{{ prices['200'] }}" required style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+                <button type="submit" class="btn-primary" style="width:100%; border:none; padding:10px; background:#1565c0; color:#fff; cursor:pointer; margin-top:10px;">Save Prices</button>
+            </form>
+            <button onclick="document.getElementById('priceModal').style.display='none'" style="margin-top:10px; width:100%; background:none; border:none; color:#666; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Bag</h3>
+            <button onclick="toggleCart()" class="close-cart">&times;</button>
+        </div>
+        <div class="cart-body" id="cart-body">
+            </div>
+        <div class="cart-footer">
+            <div class="subtotal">
+                <span>Subtotal</span> <span id="cart-subtotal">0 EGP</span>
+            </div>
+            <div class="final-total">
+                <span>Total</span> <span id="cart-total-display">0 EGP</span>
+            </div>
+            <div id="checkout-btn-wrapper">
+                {% if current_user.is_authenticated %}
+                <button onclick="processCheckout()" class="btn-gold-action" style="margin-top:0;">CHECKOUT NOW</button>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn-gold-action" style="text-align:center; display:block; margin-top:0; text-decoration:none;">LOGIN TO CHECKOUT</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Pricing Config ---
+        const PRICING_CONFIG = {
+            bottle_50ml: {{ prices['50'] }},
+            bottle_100ml: {{ prices['100'] }},
+            bottle_200ml: {{ prices['200'] }}
+        };
+
+        // --- State ---
+        let recipe = {
+            top: { name: 'None', price: 0, color: '#FFFACD' },
+            heart: { name: 'None', price: 0, color: '#FFB7C5' },
+            base: { name: 'None', price: 0, color: '#8B4513' }
+        };
+        let currentSize = 100;
+        let currentBottlePrice = PRICING_CONFIG.bottle_100ml;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCart();
+            autoSelectFirst('top'); autoSelectFirst('heart'); autoSelectFirst('base');
+            update();
+        });
+
+        function autoSelectFirst(type) {
+            const container = document.getElementById(`${type}-opts`);
+            if(container && container.querySelector('.chip-btn')) container.querySelector('.chip-btn').click();
+        }
+
+        // --- Selectors ---
+        function setupSelectors(type) {
+            const container = document.getElementById(`${type}-opts`);
+            if(!container) return;
+            container.querySelectorAll('.chip-btn').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    container.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    recipe[type].name = chip.dataset.name;
+                    recipe[type].price = parseFloat(chip.dataset.price);
+                    recipe[type].color = chip.dataset.color;
+                    update();
+                });
+            });
+        }
+        setupSelectors('top'); setupSelectors('heart'); setupSelectors('base');
+
+        const sliders = { t: document.getElementById('top-slider'), h: document.getElementById('heart-slider'), b: document.getElementById('base-slider') };
+        Object.values(sliders).forEach(s => s.addEventListener('input', update));
+
+        // --- Main Logic ---
+        function update() {
+            const vT = parseInt(sliders.t.value) || 0;
+            const vH = parseInt(sliders.h.value) || 0;
+            const vB = parseInt(sliders.b.value) || 0;
+            const totalPct = vT + vH + vB;
+
+            document.getElementById('top-val').innerText = vT + '%';
+            document.getElementById('heart-val').innerText = vH + '%';
+            document.getElementById('base-val').innerText = vB + '%';
+
+            // Liquid
+            const liquid = document.getElementById('liquid');
+            liquid.style.height = Math.min(totalPct, 100) + '%';
+            let domColor = recipe.base.color; let max = vB;
+            if(vH > max) { max = vH; domColor = recipe.heart.color; }
+            if(vT > max) { max = vT; domColor = recipe.top.color; }
+            if(totalPct > 0) liquid.style.background = `radial-gradient(circle at 50% 60%, ${domColor}dd 10%, ${domColor} 70%, #1a1a1a 100%)`;
+            else liquid.style.background = 'transparent';
+
+            // --- Receipt Logic ---
+            const billBody = document.getElementById('bill-items');
+            let billHTML = '';
+
+            // 1. Always show Bottle
+            billHTML += `
+                <div class="rec-row" style="font-weight:bold; color:#fff;">
+                    <span style="display:flex; align-items:center; gap:5px;">
+                        <span class="material-symbols-outlined" style="font-size:1rem; color:var(--gold);">science</span> 
+                        Bottle Base (${currentSize}ml)
+                    </span> 
+                    <span>${currentBottlePrice} LE</span>
+                </div>`;
+            
+            let hasIngredients = false;
+
+            if(vT > 0) {
+                let cT = (vT/100) * currentSize * recipe.top.price;
+                billHTML += generateBillRow(recipe.top.name, vT, cT, 'local_florist');
+                hasIngredients = true;
+            }
+            if(vH > 0) {
+                let cH = (vH/100) * currentSize * recipe.heart.price;
+                billHTML += generateBillRow(recipe.heart.name, vH, cH, 'favorite');
+                hasIngredients = true;
+            }
+            if(vB > 0) {
+                let cB = (vB/100) * currentSize * recipe.base.price;
+                billHTML += generateBillRow(recipe.base.name, vB, cB, 'forest');
+                hasIngredients = true;
+            }
+
+            // Empty State
+            if (!hasIngredients) {
+                billHTML += `
+                    <div class="empty-receipt-msg">
+                        <span class="material-symbols-outlined">touch_app</span>
+                        <span>Select & Mix ingredients...</span>
+                    </div>`;
+            }
+
+            billBody.innerHTML = billHTML;
+
+            // Total
+            let cT = vT > 0 ? (vT/100) * currentSize * recipe.top.price : 0;
+            let cH = vH > 0 ? (vH/100) * currentSize * recipe.heart.price : 0;
+            let cB = vB > 0 ? (vB/100) * currentSize * recipe.base.price : 0;
+            let totalCost = currentBottlePrice + cT + cH + cB;
+            
+            document.getElementById('total-price').innerText = Math.floor(totalCost) + ' LE';
+
+            const btn = document.getElementById('craft-btn');
+            const saveBtn = document.getElementById('save-btn');
+            
+            if(totalPct > 0 && totalPct <= 100) { 
+                btn.removeAttribute('disabled'); btn.innerText = "CRAFT THIS SCENT"; 
+                if(saveBtn) saveBtn.removeAttribute('disabled');
+            } else { 
+                btn.setAttribute('disabled', 'true'); btn.innerText = totalPct === 0 ? "MIX INGREDIENTS FIRST" : "OVERFLOW! REDUCE %"; 
+                if(saveBtn) saveBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        // Helper for Receipt Rows
+        function generateBillRow(name, pct, cost, icon) {
+            return `
+                <div class="rec-row">
+                    <span style="display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; color:#888;">${icon}</span>
+                        ${name} <span style="font-size:0.75rem; color:#666; margin-left:5px;">(${pct}%)</span>
+                    </span> 
+                    <span style="color:var(--gold);">${cost.toFixed(0)} LE</span>
+                </div>`;
+        }
+
+        // --- Bottle Control ---
+        function setShape(s) { document.getElementById('main-bottle').className = `bottle-glass ${s}`; document.querySelectorAll('.shape-btn').forEach(b=>b.classList.remove('active')); event.currentTarget.classList.add('active'); }
+        function setSize(ml) {
+            currentSize = ml; 
+            document.getElementById('label-vol').innerText = ml + ' ML';
+            let scale = ml===50 ? 0.85 : (ml===200 ? 1.15 : 1);
+            document.getElementById('bottle-obj').style.transform = `scale(${scale})`;
+            document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); event.currentTarget.classList.add('active');
+            
+            if(ml === 50) currentBottlePrice = PRICING_CONFIG.bottle_50ml;
+            if(ml === 100) currentBottlePrice = PRICING_CONFIG.bottle_100ml;
+            if(ml === 200) currentBottlePrice = PRICING_CONFIG.bottle_200ml;
+            update();
+        }
+        document.getElementById('name-input').addEventListener('input', (e) => document.getElementById('label-text').innerText = e.target.value || 'CUSTOM');
+
+        // --- AI Analysis ---
+        function analyzeScent() {
+            const resultBox = document.getElementById('ai-result');
+            const resultText = document.getElementById('ai-text');
+            const btn = document.querySelector('button[onclick="analyzeScent()"]');
+            
+            const vT = parseInt(sliders.t.value) || 0;
+            const vH = parseInt(sliders.h.value) || 0;
+            const vB = parseInt(sliders.b.value) || 0;
+            
+            if (vT + vH + vB === 0) {
+                alert("Please mix some ingredients first!");
+                return;
+            }
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined shaking">hourglass_top</span> Consulting Expert...`;
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
+            fetch('/analyze_scent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipe: recipe,
+                    stats: { top: vT, heart: vH, base: vB }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultText.innerHTML = data.result;
+                resultBox.style.display = 'block';
+                resultBox.style.opacity = '0';
+                setTimeout(() => resultBox.style.opacity = '1', 100);
+                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultText.innerText = "Connection lost to the AI Lab. Try again.";
+                resultBox.style.display = 'block';
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            });
+        }
+
+        // --- NEW: Save Recipe Logic (With Price) ---
+        function saveMyFormula() {
+            let name = document.getElementById('name-input').value.trim() || `Custom Scent (${currentSize}ml)`;
+            // بنجيب السعر من الصفحة
+            let priceText = document.getElementById('total-price').innerText;
+            let price = parseFloat(priceText); 
+            
+            // تجميع الوصفة
+            const vT = sliders.t.value; const vH = sliders.h.value; const vB = sliders.b.value;
+            let formula = [];
+            if(vT>0) formula.push(`Top: ${recipe.top.name} (${vT}%)`);
+            if(vH>0) formula.push(`Heart: ${recipe.heart.name} (${vH}%)`);
+            if(vB>0) formula.push(`Base: ${recipe.base.name} (${vB}%)`);
+            
+            let details = formula.join(" | ");
+
+            if (formula.length === 0) {
+                alert("Please mix something first!");
+                return;
+            }
+
+            // إرسال البيانات (الاسم، التفاصيل، والسعر)
+            fetch('/save_formula', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    name: name, 
+                    details: details,
+                    price: price // بعتنا السعر
+                })
+            }).then(res => res.json()).then(data => alert(data.message));
+        }
+
+        // --- Cart & Checkout Logic ---
+        let cart = JSON.parse(localStorage.getItem('scentCraftCart')) || [];
+        function saveCart() { localStorage.setItem('scentCraftCart', JSON.stringify(cart)); renderCart(); }
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
+        
+        function renderCart() {
+            const body = document.getElementById('cart-body'); 
+            const totalDisplay = document.getElementById('cart-total-display');
+            const subtotalDisplay = document.getElementById('cart-subtotal');
+            const countEl = document.getElementById('header-cart-count'); 
+            const btnWrap = document.getElementById('checkout-btn-wrapper');
+            
+            let count = 0; 
+            let total = 0; 
+            
+            cart.forEach(i => {
+                count += i.qty; 
+                total += i.price * i.qty;
+            });
+            
+            if(countEl) countEl.innerText = count;
+            
+            if(body) {
+                if (cart.length === 0) {
+                    body.innerHTML = `
+                        <div style="text-align:center; margin-top:50px; opacity:0.5;">
+                            <span class="material-symbols-outlined" style="font-size:4rem;">shopping_bag</span>
+                            <p style="margin-top:10px;">Your bag is empty.</p>
+                        </div>`;
+                    if(btnWrap) btnWrap.style.display = 'none';
+                } else {
+                    if(btnWrap) btnWrap.style.display = 'block';
+                    body.innerHTML = '';
+                    
+                    cart.forEach((item, idx) => {
+                        body.innerHTML += `
+                            <div class="cart-item">
+                                <div class="cart-img-wrapper">
+                                    <img src="${item.image}" alt="Product">
+                                </div>
+                                <div class="item-info">
+                                    <h4>${item.name}</h4>
+                                    <span class="formula">${item.details || 'Standard'}</span>
+                                    <div>
+                                        <span class="price-tag">${item.price} EGP</span>
+                                        <span class="qty-badge">x${item.qty}</span>
+                                    </div>
+                                </div>
+                                <button class="delete-btn" onclick="removeItem(${idx})">
+                                    <span class="material-symbols-outlined">delete_outline</span>
+                                </button>
+                            </div>`;
+                    });
+                }
+                
+                if(subtotalDisplay) subtotalDisplay.innerText = total + " EGP";
+                if(totalDisplay) totalDisplay.innerText = total + " EGP";
+            }
+        }
+        function removeItem(idx) { cart.splice(idx, 1); saveCart(); }
+        
+        document.getElementById('craft-btn').addEventListener('click', function() {
+            let name = document.getElementById('name-input').value.trim() || `Custom Scent (${currentSize}ml)`;
+            let price = parseFloat(document.getElementById('total-price').innerText);
+            let image = "https://cdn-icons-png.flaticon.com/512/3050/3050257.png";
+            let formula = [];
+            const vT = sliders.t.value; const vH = sliders.h.value; const vB = sliders.b.value;
+            if(vT>0) formula.push(`Top: ${recipe.top.name} (${vT}%)`);
+            if(vH>0) formula.push(`Heart: ${recipe.heart.name} (${vH}%)`);
+            if(vB>0) formula.push(`Base: ${recipe.base.name} (${vB}%)`);
+            let details = formula.join(" | ");
+            const exist = cart.find(i => i.name === name && i.details === details);
+            if(exist) exist.qty++; else cart.push({name, price, image, qty:1, details});
+            saveCart(); if(!document.getElementById('cart-sidebar').classList.contains('active')) toggleCart();
+        });
+
+        function processCheckout() {
+            if(!cart.length) return;
+            const btn = document.querySelector('#checkout-btn-wrapper button'); if(btn) btn.innerText = "Processing...";
+            
+            // Just send items, no promo code
+            fetch('/checkout', { 
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body:JSON.stringify({
+                    items:cart
+                }) 
+            })
+            .then(r=>r.json()).then(d => {
+                if(d.status==='success') { 
+                    cart=[]; saveCart(); toggleCart(); 
+                    alert("Order Placed Successfully! 🎉"); 
+                } 
+                else alert(d.message || 'Error processing order.');
+                if(btn) btn.innerText = "CHECKOUT NOW";
+            }).catch(()=>{ alert('Error!'); if(btn) btn.innerText = "CHECKOUT NOW"; });
+        }
+    </script>
+</body>
+</html>

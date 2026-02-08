@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>AI Perfume Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        body { background: #000; color: #fff; text-align: center; font-family: 'Montserrat'; padding: 50px; }
+        .quiz-box { max-width: 600px; margin: 0 auto; background: #111; padding: 40px; border-radius: 20px; border: 1px solid #333; }
+        select, button { width: 100%; padding: 15px; margin-top: 20px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; }
+        button { background: #D4AF37; color: #000; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="quiz-box">
+        <h1 style="color: #D4AF37;">Scent Matchmaker 🤖</h1>
+        <p>Answer 2 questions to find your soulmate scent.</p>
+        <form method="POST">
+            <select name="vibe">
+                <option value="fresh">Fresh & Clean</option>
+                <option value="romantic">Romantic & Sexy</option>
+                <option value="bold">Bold & Woody</option>
+            </select>
+            <select name="time">
+                <option value="morning">Morning / Work</option>
+                <option value="night">Night Out / Date</option>
+            </select>
+            <button type="submit">Find My Scent</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+:root {
+    --primary-gold: #C8A464;
+    --dark: #1F1F1F;
+    --gray-light: #F5F5F5;
+    --text-light: #555555;
+    --serif: 'Playfair Display', serif;
+    --sans: 'Almarai', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: white; height: 100vh; overflow: hidden; }
+
+/* --- تظبيط الهيدر والنافيجيشن --- */
+.auth-header {
+    position: absolute;
+    top: 0; left: 0; width: 100%; z-index: 100;
+    padding: 25px 50px;
+    display: flex;
+    justify-content: space-between; /* اللوجو يمين واللينكات شمال */
+    align-items: center;
+}
+
+/* ستايل اللوجو كـ رابط */
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--dark); /* خليته غامق عشان الخلفية بيضا في اليمين */
+    text-decoration: none; /* شيل الخط اللي تحته */
+    transition: 0.3s;
+}
+.logo:hover { color: var(--primary-gold); }
+
+/* ستايل لينكات النافيجيشن */
+.auth-nav a {
+    text-decoration: none;
+    color: var(--text-light);
+    margin-left: 25px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: 0.3s;
+}
+.auth-nav a:hover {
+    color: var(--primary-gold);
+}
+
+.serif { font-family: var(--serif); }
+
+/* --- باقي الستايل زي ما هو --- */
+.auth-wrapper { display: flex; height: 100vh; }
+
+.auth-visual {
+    flex: 1;
+    background: url('/static/images/7b46bb5e-6e0b-4521-8e21-be4f20d9e81e.png') center/cover;
+    position: relative;
+    display: flex; align-items: flex-end; padding: 60px; color: white;
+}
+.auth-visual .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
+.visual-content { position: relative; z-index: 2; }
+.visual-content h2 { font-size: 3rem; margin-bottom: 10px; }
+
+.auth-form-side {
+    width: 50%; /* خليتها نص الشاشة بالظبط */
+    display: flex; align-items: center; justify-content: center;
+    background: white; padding: 40px;
+    position: relative; /* عشان الهيدر يعرف مكانه */
+}
+
+/* ميديا كويري: في الشاشات الصغيرة اللوجو يبقى غامق */
+@media (min-width: 1000px) {
+    .logo { color: white; } /* اللوجو يبقى أبيض لما يكون فوق الصورة */
+    .auth-nav a { color: rgba(255,255,255,0.8); } /* اللينكات بيضاء */
+    .auth-nav a:hover { color: var(--primary-gold); }
+    
+    /* تعديل الهيدر عشان يمتد فوق الصورة والفورم */
+    .auth-header { width: 100%; }
+}
+
+/* لو الشاشة صغيرة والصورة اختفت، نرجع اللوجو غامق */
+@media (max-width: 1000px) {
+    .auth-visual { display: none; }
+    .auth-form-side { width: 100%; }
+    .logo { color: var(--dark); }
+    .auth-nav a { color: var(--text-light); }
+}
+
+.form-content { width: 100%; max-width: 400px; }
+.header-text { margin-bottom: 30px; text-align: center; }
+.header-text h1 { font-size: 2.5rem; color: var(--dark); }
+.header-text p { color: var(--text-light); font-size: 0.9rem; }
+
+.tabs-container { display: flex; background: var(--gray-light); padding: 5px; border-radius: 10px; margin-bottom: 30px; }
+.tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; color: var(--text-light); }
+.tab.active { background: var(--dark); color: white; }
+
+.auth-form { display: flex; flex-direction: column; gap: 15px; }
+.auth-form.hidden { display: none; }
+.input-group input { width: 100%; padding: 12px 20px; border: 1px solid #E0E0E0; border-radius: 8px; background: var(--gray-light); font-family: var(--sans); }
+.input-group input:focus { outline: 2px solid var(--primary-gold); border-color: transparent; }
+
+.form-options { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-light); }
+.forgot-link { color: var(--primary-gold); text-decoration: none; font-weight: bold; }
+
+.btn-submit { background: var(--dark); color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+.btn-submit:hover { background: black; transform: translateY(-2px); }
+
+.divider { text-align: center; margin: 30px 0; position: relative; }
+.divider::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #EEE; z-index: 1; }
+.divider span { background: white; padding: 0 15px; position: relative; z-index: 2; color: #AAA; font-size: 0.8rem; }
+
+.social-auth { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.social-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border: 1px solid #EEE; border-radius: 8px; background: white; cursor: pointer; transition: 0.3s; }
+.social-btn:hover { background: var(--gray-light); }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScentCraft - Login & Sign Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth-style.css') }}">
+</head>
+<body>
+
+    <header class="auth-header">
+        <a href="{{ url_for('home') }}" class="logo serif">ScentCraft</a>
+    </header>
+
+    <main class="auth-wrapper">
+        <div class="auth-visual">
+            <div class="overlay"></div>
+            <div class="visual-content">
+                <h2 class="serif">The Art of Scent</h2>
+                <p>Sign in to continue your olfactory journey.</p>
+            </div>
+        </div>
+
+        <div class="auth-form-side">
+            <div class="form-content">
+                <div class="header-text">
+                    <h1 class="serif">Welcome</h1>
+                    <p>Manage your account or join our community</p>
+                </div>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div style="background:#ffebee; color:#c62828; padding:10px; border-radius:5px; margin-bottom:15px; text-align:center;">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="tabs-container">
+                    <div class="tab active" id="tab-login">Log In</div>
+                    <div class="tab" id="tab-signup">Sign Up</div>
+                </div>
+
+                <form id="login-form" class="auth-form" method="POST" action="{{ url_for('login') }}">
+                    <div class="input-group">
+                        <input type="email" name="login_email" placeholder="Email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" name="login_password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Log In</button>
+                </form>
+
+                <form id="signup-form" class="auth-form hidden" method="POST" action="{{ url_for('login') }}">
+                    <div class="input-group">
+                        <input type="text" name="signup_name" placeholder="Full name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" name="signup_email" placeholder="Email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" name="signup_password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Create Account</button>
+                </form>
+
+                <div class="divider"><span>Or continue with</span></div>
+                <div class="social-auth">
+                    <button class="social-btn">Google</button>
+                    <button class="social-btn">Facebook</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/auth-script.js') }}"></script>
+</body>
+</html>

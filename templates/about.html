@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScentCraft - The Legacy</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <style>
+        /* --- Dark Luxury Theme Variables --- */
+        :root { --gold: #D4AF37; --gold-dim: #8a7020; --bg-dark: #0a0a0a; }
+
+        body.about-page {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 30%, #1b1b1b 0%, #000 80%);
+            color: #e0e0e0;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* 1. Cinematic Hero (Background Preserved) */
+        .about-hero {
+            position: relative;
+            height: 70vh;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            /* الصورة اللي انت طلبتها */
+            background: fixed url('/static/images/2.png') center/cover no-repeat;
+            border-bottom: 1px solid #222;
+        }
+        .about-hero::after {
+            /* تظليل متدرج عشان الكلام يبان بوضوح */
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4), var(--bg-dark));
+        }
+        .hero-inner {
+            position: relative; z-index: 2; color: #fff; max-width: 800px; padding: 20px;
+            animation: fadeInUp 1s ease-out;
+        }
+        .hero-pre {
+            font-family: 'Montserrat', sans-serif; letter-spacing: 6px; font-size: 0.9rem; 
+            text-transform: uppercase; margin-bottom: 1rem; color: var(--gold);
+        }
+        .hero-title {
+            font-size: 4.5rem; font-family: 'Playfair Display', serif; margin-bottom: 1.5rem; 
+            line-height: 1.1; text-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+
+        /* 2. Story Section (Dark Mode) */
+        .story-section { padding: 100px 0; }
+        .story-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-bottom: 120px;
+        }
+        .story-row.reverse { direction: rtl; }
+        .story-row.reverse .story-text { direction: ltr; }
+        
+        .story-img-wrapper {
+            position: relative; height: 500px; overflow: hidden; border-radius: 5px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #222;
+        }
+        .story-img {
+            width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; 
+            filter: brightness(0.9);
+        }
+        .story-img-wrapper:hover .story-img { transform: scale(1.05); filter: brightness(1.1); }
+        
+        /* Gold Frame Effect */
+        .story-img-wrapper::before {
+            content: ''; position: absolute; top: 20px; left: 20px; right: -20px; bottom: -20px;
+            border: 1px solid var(--gold); z-index: -1; transition: 0.3s;
+        }
+        .story-img-wrapper:hover::before { top: 10px; left: 10px; right: -10px; bottom: -10px; border-color: #fff; }
+        
+        .story-row.reverse .story-img-wrapper::before { left: -20px; right: 20px; }
+        .story-row.reverse .story-img-wrapper:hover::before { left: -10px; right: 10px; }
+
+        .story-text h2 {
+            font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 1.5rem; color: #fff;
+        }
+        .story-text p {
+            font-size: 1.1rem; line-height: 1.8; color: #aaa; margin-bottom: 1.5rem;
+        }
+        .highlight { color: var(--gold); font-weight: bold; }
+
+        /* 3. Values Grid (Glass Cards) */
+        .values-section {
+            background-color: #050505; padding: 100px 0; text-align: center; border-top: 1px solid #222;
+        }
+        .values-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-top: 60px;
+        }
+        .value-card {
+            padding: 40px 30px; 
+            background: rgba(255,255,255,0.03); /* Glass Effect */
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.4s; border-radius: 15px; position: relative; overflow: hidden;
+        }
+        .value-card:hover { transform: translateY(-10px); border-color: var(--gold-dim); background: rgba(255,255,255,0.05); }
+        .value-icon { font-size: 3.5rem; color: var(--gold); margin-bottom: 25px; display: block; }
+        .value-card h3 { font-family: 'Playfair Display'; margin-bottom: 15px; font-size: 1.5rem; color: #fff; }
+        .value-card p { color: #888; line-height: 1.6; }
+
+        /* 4. Founder Quote */
+        /* --- 4. Founder Quote (Updated Luxury Background) --- */
+        .quote-section {
+            position: relative;
+            padding: 140px 0; /* كبرنا المساحة شوية عشان الفخامة */
+            text-align: center;
+            
+            /* السحر كله هنا: */
+            /* 1. طبقة سوداء شفافة (0.8) عشان الكلام يبان */
+            /* 2. صورة خلفية (دخان عطر غامض) */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.9)), 
+                        url('https://images.unsplash.com/photo-1615634260167-c8cdede054de?q=80&w=1920&auto=format&fit=crop') center/cover fixed no-repeat;
+            
+            background-attachment: fixed; /* بيخلي الصورة ثابتة والصفحة بتتحرك عليها (Parallax) */
+            
+            color: #fff;
+            border-top: 1px solid rgba(212, 175, 55, 0.3); /* خط دهبي خفيف فوق */
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3); /* خط دهبي خفيف تحت */
+            box-shadow: inset 0 0 100px #000; /* ضل داخلي للعمق */
+        }
+
+        .quote-text {
+            font-family: 'Playfair Display', serif; 
+            font-size: 2.5rem; 
+            font-style: italic;
+            max-width: 900px; 
+            margin: 0 auto 40px; 
+            line-height: 1.6; 
+            color: #fff;
+            text-shadow: 0 5px 15px rgba(0,0,0,1); /* ضل للكلام عشان يبرز عن الخلفية */
+        }
+
+        .signature {
+            font-family: 'Mrs Saint Delafield', cursive;
+            font-size: 4rem; 
+            color: var(--gold); 
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            transform: rotate(-5deg); /* ميلة بسيطة للتوقيع عشان يبان طبيعي */
+            display: inline-block;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-title { font-size: 3rem; }
+            .story-row, .story-row.reverse { grid-template-columns: 1fr; direction: ltr; gap: 40px; }
+            .story-text { direction: ltr; text-align: center; }
+            .story-img-wrapper { height: 350px; }
+            .story-img-wrapper::before { display: none; }
+        }
+        
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="about-page"> 
+    
+    <header class="site-header scrolled" dir="rtl" style="background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);">
+        <div class="container">
+            <div class="header-actions">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.9rem; padding: 0 1.5rem;">Log Out</a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-outlined" style="font-size: 1.2rem;">person</span>
+                        <span>{{ current_user.name.split(' ')[0] }}</span> </a>
+                {% else %}
+                    <a href="{{ url_for('login', mode='signup') }}" class="btn btn-primary">Sign Up</a>        
+                    <a href="{{ url_for('login', mode='login') }}" class="btn btn-outline">Log In</a>
+                {% endif %}
+            </div>
+
+            <nav class="main-nav" id="main-nav">
+                <a href="{{ url_for('about') }}" style="color:var(--gold);">About Us</a>
+                <a href="{{ url_for('lab') }}">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+
+            <a href="{{ url_for('home') }}" class="logo-link"> 
+                <h2 class="logo-text">ScentCraft</h2>
+            </a>
+            
+            <button class="mobile-menu-btn" id="mobile-menu-btn"><span class="material-symbols-outlined">menu</span></button>
+        </div>
+    </header>
+
+    <main>
+        <section class="about-hero">
+            <div class="hero-inner">
+                <div class="hero-pre">Est. 2026</div>
+                <h1 class="hero-title">Crafting the Invisible Signature</h1>
+                <p style="font-size: 1.2rem; opacity: 0.8; letter-spacing: 1px;">More than a perfume. It's a memory, distilled.</p>
+            </div>
+        </section>
+
+        <div class="container">
+            <section class="story-section">
+                
+                <div class="story-row">
+                    <div class="story-img-wrapper">
+                        <img src="/static/images/photo-1615634260167-c8cdede054de.jpg" alt="Ingredients" class="story-img">
+                    </div>
+                    <div class="story-text">
+                        <h2>The Beginning</h2>
+                        <p>It started with a single drop of <span class="highlight">Oud</span>. ScentCraft wasn't born in a boardroom, but in a small artisan workshop in Cairo. We realized that modern perfumery had lost its soul—it became about mass production, not personal expression.</p>
+                        <p>We wanted to bring back the "Golden Age" of perfumery, where every bottle tells a unique story, crafted by hand and heart.</p>
+                    </div>
+                </div>
+
+                <div class="story-row reverse">
+                    <div class="story-img-wrapper">
+                        <img src="/static/images/1.png" alt="Perfumer" class="story-img">
+                    </div>
+                    <div class="story-text">
+                        <h2>Our Philosophy</h2>
+                        <p>We believe scent is the most powerful link to memory. A whiff of jasmine can take you back to your grandmother's garden; a hint of sea salt can bring back a summer romance.</p>
+                        <p>That's why we created the <span class="highlight">Virtual Lab</span>. We don't just sell you perfume; we give you the tools to become the creator of your own olfactory legacy.</p>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+
+        <section class="values-section">
+            <div class="container">
+                <h2 style="font-family: 'Playfair Display'; font-size: 3rem; margin-bottom: 1rem; color: #fff;">Why ScentCraft?</h2>
+                <div style="width: 60px; height: 3px; background: var(--gold); margin: 0 auto 50px;"></div>
+                
+                <div class="values-grid">
+                    <div class="value-card">
+                        <span class="material-symbols-outlined value-icon">eco</span>
+                        <h3>100% Organic</h3>
+                        <p>Sourced ethically from the finest growers around the world. No synthetics, just pure nature.</p>
+                    </div>
+                    <div class="value-card">
+                        <span class="material-symbols-outlined value-icon">diamond</span>
+                        <h3>Luxury Quality</h3>
+                        <p>High oil concentration (Eau de Parfum) ensures your scent lingers from dawn till dusk.</p>
+                    </div>
+                    <div class="value-card">
+                        <span class="material-symbols-outlined value-icon">fingerprint</span>
+                        <h3>Uniquely Yours</h3>
+                        <p>With our AI technology, no two custom blends are exactly alike. Wear your own signature.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="quote-section">
+            <div class="container">
+                <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--gold); margin-bottom: 20px;">format_quote</span>
+                <p class="quote-text">
+                    "Perfume is the key to our memories. We make sure you hold the key to a beautiful one."
+                </p>
+                <div class="signature">Zeyad Tarek</div>
+                <div style="font-size: 0.8rem; letter-spacing: 3px; margin-top: 10px; color: #888;">FOUNDER & CEO</div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="site-footer" style="background: #050505; border-top: 1px solid #222; padding: 60px 0;">
+        <div class="container footer-container" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+            
+            <div class="footer-brand" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <h2 class="logo-text text-primary" style="margin-bottom: 1rem; color: var(--gold);">ScentCraft</h2>
+                <p class="footer-tagline" style="margin: 0 auto 2rem auto; max-width: 500px; text-align: center; color: #888;">
+                    Crafting memories through the power of scent. Your journey to the perfect fragrance starts here.
+                </p>
+            </div>
+            
+            <div class="footer-links-container" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                
+                <div class="footer-socials" style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
+                    <a href="https://instagram.com" target="_blank" style="color: #fff; transition: 0.3s;"><span class="material-symbols-outlined">photo_camera</span></a>
+                    <a href="https://wa.me/" target="_blank" style="color: #fff; transition: 0.3s;"><span class="material-symbols-outlined">chat_bubble</span></a>
+                </div>
+
+                <div class="footer-legal-links" style="display: flex; justify-content: center; gap: 2rem; font-size: 0.9rem;">
+                    <a href="#" style="color: rgba(255,255,255,0.7);">Privacy Policy</a>
+                    <a href="#" style="color: rgba(255,255,255,0.7);">Terms of Service</a>
+                </div>
+                
+                <p class="footer-copyright" style="margin-top: 2rem; color: rgba(255,255,255,0.4);">© 2026 ScentCraft. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

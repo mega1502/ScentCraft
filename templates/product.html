@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - ScentCraft</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <style>
+        :root { --gold: #D4AF37; --gold-dim: #8a7020; --bg-dark: #0a0a0a; }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: radial-gradient(circle at 70% 20%, #1b1b1b 0%, #000 80%);
+            color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; 
+        }
+
+        /* --- Main Layout --- */
+        .product-container {
+            max-width: 1200px; margin: 120px auto 80px; padding: 0 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+        }
+
+        /* Image Section (Spotlight Effect) */
+        .p-image-wrapper {
+            position: relative; height: 550px; 
+            background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 30px; display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+        }
+        .p-image-wrapper img {
+            max-height: 85%; max-width: 85%; object-fit: contain;
+            filter: drop-shadow(0 30px 50px rgba(0,0,0,0.6));
+            transition: transform 0.5s ease;
+        }
+        .p-image-wrapper:hover img { transform: scale(1.05) rotate(2deg); }
+
+        /* Details Section */
+        .p-info { padding: 20px; }
+        
+        .breadcrumbs { color: #666; font-size: 0.9rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .breadcrumbs a { color: #888; text-decoration: none; transition: 0.3s; }
+        .breadcrumbs a:hover { color: var(--gold); }
+
+        .p-title { font-family: 'Playfair Display'; font-size: 3.5rem; line-height: 1.1; margin-bottom: 10px; color: #fff; }
+        .p-price { font-size: 2rem; color: var(--gold); font-weight: bold; margin-bottom: 25px; font-family: 'Playfair Display'; display: flex; align-items: center; gap: 15px; }
+        .p-badge { font-size: 0.8rem; background: rgba(212, 175, 55, 0.1); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-family: 'Montserrat'; letter-spacing: 1px; border: 1px solid rgba(212, 175, 55, 0.3); }
+
+        .p-desc { color: #aaa; line-height: 1.8; font-size: 1.05rem; margin-bottom: 40px; border-left: 3px solid var(--gold-dim); padding-left: 20px; }
+
+        /* Actions Area */
+        .actions-wrapper { 
+            background: rgba(255,255,255,0.03); padding: 25px; border-radius: 15px; 
+            border: 1px solid rgba(255,255,255,0.05); display: flex; flex-wrap: wrap; gap: 20px; align-items: center; 
+        }
+
+        /* Quantity Selector */
+        .qty-selector { 
+            display: flex; align-items: center; background: #000; border: 1px solid #333; 
+            border-radius: 8px; padding: 5px; 
+        }
+        .qty-btn { 
+            background: none; border: none; color: #fff; width: 40px; height: 40px; 
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; 
+        }
+        .qty-btn:hover { color: var(--gold); }
+        .qty-input { 
+            width: 50px; background: transparent; border: none; color: #fff; 
+            text-align: center; font-weight: bold; font-size: 1.1rem; outline: none; 
+        }
+
+        /* Add Button */
+        .btn-add-main { 
+            flex: 1; padding: 16px; background: linear-gradient(135deg, var(--gold), var(--gold-dim)); 
+            border: none; color: #000; font-weight: bold; font-family: 'Playfair Display'; 
+            font-size: 1.2rem; cursor: pointer; border-radius: 8px; transition: 0.3s; 
+            display: flex; align-items: center; justify-content: center; gap: 10px; 
+        }
+        .btn-add-main:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25); }
+
+        /* Wishlist Icon */
+        .btn-wish-icon { 
+            width: 55px; height: 55px; border-radius: 8px; border: 1px solid #333; 
+            background: transparent; color: #fff; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; transition: 0.3s; text-decoration: none; 
+        }
+        .btn-wish-icon:hover { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.05); }
+
+        /* --- Cart Styles (Standard) --- */
+        .cart-icon-btn { background: none; border: none; color: #fff; cursor: pointer; position: relative; margin-right: 15px; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--gold); color: #000; font-size: 0.7rem; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #cart-sidebar { position: fixed; top: 0; right: -450px; width: 400px; height: 100%; background: rgba(15, 15, 15, 0.98); color: #fff; box-shadow: -15px 0 50px rgba(0,0,0,0.9); border-left: 1px solid #333; transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1); z-index: 3000; display: flex; flex-direction: column; }
+        #cart-sidebar.active { right: 0; }
+        .cart-header { padding: 30px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
+        .cart-header h3 { font-family: 'Playfair Display'; margin: 0; font-size: 1.8rem; color: var(--gold); }
+        .close-cart { background: none; border: none; color: #666; font-size: 2rem; cursor: pointer; transition: 0.3s; }
+        .close-cart:hover { color: #fff; transform: rotate(90deg); }
+        .cart-body { flex: 1; overflow-y: auto; padding: 25px; }
+        .cart-item { display: grid; grid-template-columns: 80px 1fr 40px; gap: 15px; background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 12px; margin-bottom: 20px; align-items: center; transition: 0.3s; }
+        .cart-item:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+        .cart-img-wrapper { width: 80px; height: 80px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 5px; }
+        .cart-img-wrapper img { width: 100%; height: 100%; object-fit: contain; }
+        .item-info h4 { margin: 0 0 5px; font-size: 1rem; color: #fff; }
+        .item-info .formula { font-size: 0.75rem; color: #888; font-style: italic; display: block; margin-bottom: 8px; }
+        .item-info .price-tag { color: var(--gold); font-weight: bold; font-size: 0.95rem; }
+        .item-info .qty-badge { font-size: 0.8rem; background: #333; padding: 2px 8px; border-radius: 4px; color: #ccc; margin-left: 8px; }
+        .delete-btn { background: none; border: none; color: #444; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .delete-btn:hover { color: #ff4d4d; }
+        .cart-footer { padding: 30px; background: #111; border-top: 1px solid #222; }
+        .final-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 1.5rem; font-weight: bold; font-family: 'Playfair Display'; color: #fff; }
+        .final-total span:last-child { color: var(--gold); }
+        .btn-gold-action { width: 100%; padding: 18px; background: linear-gradient(to right, var(--gold), var(--gold-dim)); border: none; color: #000; font-weight: bold; font-family: 'Playfair Display'; font-size: 1.1rem; cursor: pointer; border-radius: 4px; transition: 0.3s; display:block; text-align:center; text-decoration:none;}
+        .btn-gold-action:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); }
+
+        @media (max-width: 900px) { .product-container { grid-template-columns: 1fr; margin-top: 80px; gap: 40px; } .p-image-wrapper { height: 350px; } #cart-sidebar { width: 100%; right: -100%; } }
+    </style>
+</head>
+<body>
+
+    <header class="site-header" dir="rtl" style="background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);">
+        <div class="container">
+            <div class="header-actions">
+                <button onclick="toggleCart()" class="cart-icon-btn">
+                    <span class="material-symbols-outlined" style="font-size: 1.8rem;">shopping_bag</span>
+                    <span class="cart-count" id="header-cart-count">0</span>
+                </button>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 15px;">Log Out</a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">person</span>
+                        <span>{{ current_user.name.split(' ')[0] }}</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary" style="font-size: 0.8rem;">Log In</a>
+                {% endif %}
+            </div>
+            <nav class="main-nav">
+                <a href="{{ url_for('about') }}">About Us</a
+                <a href="{{ url_for('lab') }}" style="color: var(--gold);">Virtual Lab</a>
+                <a href="{{ url_for('shop') }}">Shop</a>
+            </nav>
+            <a href="{{ url_for('home') }}" class="logo-link"><h2 class="logo-text" style="color: #fff;">ScentCraft</h2></a>
+        </div>
+    </header>
+
+    <div class="product-container">
+        
+        <div class="p-image-wrapper">
+            <img src="{{ product.image }}" alt="{{ product.name }}">
+        </div>
+
+        <div class="p-info">
+            <div class="breadcrumbs">
+                <a href="{{ url_for('shop') }}">Shop</a> / <a href="#">{{ product.category }}</a> / <span>{{ product.name }}</span>
+            </div>
+
+            <h1 class="p-title">{{ product.name }}</h1>
+            
+            <div class="p-price">
+                {{ product.price }} EGP
+                <span class="p-badge">PREMIUM EDITION</span>
+            </div>
+
+            <p class="p-desc">
+                {{ product.desc }}<br><br>
+                A masterpiece crafted for those who appreciate the finer details. 
+                Designed to leave a lasting impression with its unique blend of rare ingredients.
+            </p>
+
+            <div class="actions-wrapper">
+                <div class="qty-selector">
+                    <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                    <input type="text" id="qtyInput" class="qty-input" value="1" readonly>
+                    <button class="qty-btn" onclick="updateQty(1)">+</button>
+                </div>
+
+                <button onclick="addToCartDetailed()" class="btn-add-main">
+                    ADD TO BAG <span class="material-symbols-outlined">shopping_bag</span>
+                </button>
+
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('toggle_wishlist', product_id=product.id) }}" class="btn-wish-icon" title="Add to Wishlist">
+                    <span class="material-symbols-outlined" style="font-size:1.5rem;">favorite_border</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Bag</h3>
+            <button onclick="toggleCart()" class="close-cart">&times;</button>
+        </div>
+        <div class="cart-body" id="cart-body"></div>
+        <div class="cart-footer">
+            <div class="final-total">
+                <span>Total</span> <span id="cart-total-display">0 EGP</span>
+            </div>
+            <div id="checkout-btn-wrapper">
+                {% if current_user.is_authenticated %}
+                <button onclick="processCheckout()" class="btn-gold-action" style="margin-top:0;">CHECKOUT NOW</button>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn-gold-action">LOGIN TO CHECKOUT</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quantity Logic
+        function updateQty(change) {
+            let input = document.getElementById('qtyInput');
+            let val = parseInt(input.value) + change;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+
+        // Cart Logic
+        let cart = JSON.parse(localStorage.getItem('scentCraftCart')) || [];
+        document.addEventListener('DOMContentLoaded', renderCart);
+
+        function addToCartDetailed() {
+            const qty = parseInt(document.getElementById('qtyInput').value);
+            const name = "{{ product.name }}";
+            const price = parseFloat("{{ product.price }}");
+            const image = "{{ product.image }}";
+            
+            const existingItem = cart.find(item => item.name === name && item.details === 'Standard Collection');
+            if (existingItem) {
+                existingItem.qty += qty;
+            } else {
+                cart.push({ name: name, price: price, image: image, qty: qty, details: 'Standard Collection' });
+            }
+            saveCart();
+            if (!document.getElementById('cart-sidebar').classList.contains('active')) toggleCart();
+        }
+
+        function saveCart() { localStorage.setItem('scentCraftCart', JSON.stringify(cart)); renderCart(); }
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('active'); }
+
+        function renderCart() {
+            const body = document.getElementById('cart-body'); 
+            const totalDisplay = document.getElementById('cart-total-display');
+            const countEl = document.getElementById('header-cart-count'); 
+            const btnWrap = document.getElementById('checkout-btn-wrapper');
+            
+            let count = 0; let total = 0; 
+            cart.forEach(i => { count += i.qty; total += i.price * i.qty; });
+            if(countEl) countEl.innerText = count;
+            
+            if(body) {
+                if (cart.length === 0) {
+                    body.innerHTML = '<p style="text-align:center; color:#666; margin-top:40px; font-style:italic;">Your bag is empty.</p>';
+                    if(btnWrap) btnWrap.style.display = 'none';
+                } else {
+                    if(btnWrap) btnWrap.style.display = 'block';
+                    body.innerHTML = '';
+                    cart.forEach((item, idx) => {
+                        body.innerHTML += `
+                            <div class="cart-item">
+                                <div class="cart-img-wrapper"><img src="${item.image}"></div>
+                                <div class="item-info">
+                                    <h4>${item.name}</h4>
+                                    <span class="formula">${item.details}</span>
+                                    <div><span class="price-tag">${item.price} EGP</span><span class="qty-badge">x${item.qty}</span></div>
+                                </div>
+                                <button class="delete-btn" onclick="removeItem(${idx})"><span class="material-symbols-outlined">delete_outline</span></button>
+                            </div>`;
+                    });
+                }
+                if(totalDisplay) totalDisplay.innerText = total + " EGP";
+            }
+        }
+        function removeItem(idx) { cart.splice(idx, 1); saveCart(); }
+
+        function processCheckout() {
+            if(!cart.length) return;
+            const btn = document.querySelector('#checkout-btn-wrapper button'); if(btn) btn.innerText = "Processing...";
+            fetch('/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({items:cart}) })
+            .then(r=>r.json()).then(d => {
+                if(d.status==='success') { cart=[]; saveCart(); toggleCart(); alert("Order Placed Successfully! 🎉"); window.location.href = "{{ url_for('profile') }}"; } 
+                else alert('Error processing order.');
+                if(btn) btn.innerText = "CHECKOUT NOW";
+            }).catch(()=>{ alert('Error!'); if(btn) btn.innerText = "CHECKOUT NOW"; });
+        }
+    </script>
+</body>
+</html>

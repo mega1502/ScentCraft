@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ScentCraft Admin - Orders</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        body { background-color: #0a0a0a; color: #fff; padding: 20px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .order-card { background: #111; border: 1px solid #333; border-radius: 10px; margin-bottom: 20px; padding: 20px; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .badge { padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold; }
+        .bg-pending { background: #ffc107; color: #000; }
+        .bg-shipped { background: #17a2b8; color: #fff; }
+        .bg-delivered { background: #28a745; color: #fff; }
+        .bg-cancelled { background: #dc3545; color: #fff; }
+        
+        .item-row { display: flex; justify-content: space-between; margin-bottom: 5px; color: #ccc; font-size: 0.9rem; }
+        .custom-recipe { color: #D4AF37; font-size: 0.8rem; display: block; margin-top: 2px; }
+        
+        .action-btn { padding: 5px 15px; border: none; cursor: pointer; border-radius: 3px; margin-left: 5px; text-decoration: none; font-size: 0.8rem; }
+        .btn-ship { background: #17a2b8; color: #fff; }
+        .btn-done { background: #28a745; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="admin-header">
+            <h2 style="color: #D4AF37;">Incoming Orders</h2>
+            <a href="{{ url_for('home') }}" class="btn btn-outline" style="color:#fff;">Back to Shop</a>
+        </div>
+
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <div>
+                    <h3 style="margin: 0;">Order #{{ order.id }}</h3>
+                    <small style="color: #888;">{{ order.date.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+                <div>
+                    <span class="badge bg-{{ order.status.lower() }}">{{ order.status }}</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="color: #888; margin-bottom: 10px;">Client Details</h4>
+                    <p style="margin: 5px 0;"><strong>Name:</strong> {{ order.user.name }}</p>
+                    <p style="margin: 5px 0;"><strong>Phone:</strong> {{ order.user.phone }}</p>
+                    <p style="margin: 5px 0;"><strong>Address:</strong> {{ order.user.address }}</p>
+                </div>
+
+                <div>
+                    <h4 style="color: #888; margin-bottom: 10px;">Items</h4>
+                    {% for item in order.items %}
+                    <div class="item-row">
+                        <span>{{ item.quantity }}x {{ item.product_name }}</span>
+                        <span>{{ item.product_price }} EGP</span>
+                    </div>
+                    {% if item.details and item.details != '-' %}
+                        <span class="custom-recipe">🧪 Recipe: {{ item.details }}</span>
+                    {% endif %}
+                    {% endfor %}
+                    <hr style="border-color: #333;">
+                    <div style="text-align: right; font-size: 1.2rem; color: #D4AF37;">
+                        Total: {{ order.total }} EGP
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: right; border-top: 1px solid #222; padding-top: 15px;">
+                <span style="color: #666; font-size: 0.9rem; margin-right: 10px;">Update Status:</span>
+                <a href="{{ url_for('update_order_status', order_id=order.id, status='Shipped') }}" class="action-btn btn-ship">Mark as Shipped</a>
+                <a href="{{ url_for('update_order_status', order_id=order.id, status='Delivered') }}" class="action-btn btn-done">Mark as Delivered</a>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 50px; color: #666;">
+            <h3>No orders received yet.</h3>
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
